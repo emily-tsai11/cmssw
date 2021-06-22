@@ -1,51 +1,51 @@
 #!/bin/tcsh
-###########################################################################
-# Create L1 track histograms & print summary of tracking performance,     #
-# by running ROOT macro L1TrackNtuplePlot.C on .root file                 #
-# from L1TrackNtupleMaker_cfg.py                                          #                     
-#                                                                         #
-# To use:                                                                 #
-#   makeHists.csh  rootFileName                                           #
-#                                                                         #
-# (where rootFileName is the name of the input .root file,                #
-#  including its directory name, if its not in the current one.           #
-#  If rootFileName not specified, it defaults to TTbar_PU200_hybrid.root) #
-###########################################################################
+############################################################################
+# Create L1 track histograms & print summary of tracking performance,      #
+# by running ROOT macro L1TrackNtuplePlot.C or MiniPlot.C on .root file    #
+# from L1TrackNtupleMaker_cfg.py                                           #
+#                                                                          #
+# To use:                                                                  #
+#   ./makeHists.csh rootFileName                                           #
+#                                                                          #
+# (where rootFileName is the name of the input .root file, including its   #
+#   directory name, if it's not in the current one. If rootFileName is not #
+#   specified, it defaults to NuGun_PU200_D76.root)                        #
+############################################################################
 
 if ($#argv == 0) then
-  set inputFullFileName = "TTbar_PU200_D49.root"
+	set rootFileName = "output/NuGun_PU200_D76.root"
 else
-  set inputFullFileName = $1
+	set rootFileName = $1
 endif
 
-if ( -e $inputFullFileName) then
-  echo "Processing $inputFullFileName"
+if ( -e $rootFileName) then
+	echo "Processing $rootFileName"
 else
-  echo "ERROR: Input file $inputFullFileName not found"
-  exit(1)
+	echo "ERROR: ROOT file $rootFileName not found"
+	exit(1)
 endif
 
 # Get directory name
-set dirName = `dirname $inputFullFileName`/
+set dirName = `dirname $rootFileName`/
 # Get file name without directory name
-set fileName = `basename $inputFullFileName`
+set fileName = `basename $rootFileName`
 # Get stem of filename, removing ".root".
-set inputFileStem = `echo $fileName | awk -F . '{print $1;}'`
+set fileStem = `echo $fileName | awk -F . '{print $1;}'`
 
 # Find plotting macro
 eval `scramv1 runtime -csh`
-set plotMacro = $CMSSW_BASE/src/L1Trigger/TrackFindingTracklet/test/L1TrackNtuplePlot.C
+set plotMacro = $CMSSW_BASE/src/L1Trigger/TrackFindingTracklet/test/MiniPlot.C
 if ( -e $plotMacro ) then
-  # Run plotting macro
-  if (-e TrkPlots) rm -r TrkPlots
-  \root -b -q ${plotMacro}'("'${inputFileStem}'","'${dirName}'")' | tail -n 19 >! results.out 
-  cat results.out
-  echo "Tracking performance summary written to results.out"
-  echo "Histograms written to TrkPlots/"  
-else if ( -e ../L1TrackNtuplePlot.C ) then
+	# Run plotting macro
+	if (-e TrkPlots) rm -r TrkPlots
+	\root -l -b -q ${plotMacro}'("'${fileStem}'","'${dirName}'")' | tail -n 19 >! ${dirName}results.out
+	cat ${dirName}results.out
+	echo "Tracking performance summary written to ${dirName}results.out"
+	echo "Histograms written to ${dirName}TrackPlots/"
+else if ( -e $plotMacro ) then
 else
-  echo "ERROR: $plotMacro not found"
-  exit(2)
+	echo "ERROR: $plotMacro not found"
+	exit(2)
 endif
 
 exit
