@@ -2,16 +2,16 @@ import os
 import sys
 from itertools import islice
 
-submit_name = 'NuGun_PU200_D76'
+submit_name = 'ZMM_PU200_D76'
 
 # Number of sample file(s) processed per condor job
 n_file = 1
 
 # Number of events per condor job
-n_events = 10
+n_events = -1
 
 # Name of the txt file used to help locate samples
-file_list = 'list/temp.list'
+file_list = 'list/RelValZMM.list'
 
 with open(file_list, 'r') as f:
 
@@ -54,7 +54,7 @@ with open(file_list, 'r') as f:
 		executable += 'eval `scramv1 runtime -sh`\n' # This is effectively "cmsenv"
 		executable += 'export X509_USER_PROXY=/afs/cern.ch/user/e/etsai/.globus/x509up_u125665\n' # Exporting the proxy
 		executable += 'cd /afs/cern.ch/user/e/etsai/workspace/CMSSW_11_3_0_pre3/src/L1Trigger/TrackFindingTracklet/test\n' # Go the directory where you have the producer and python config file
-		executable += 'cmsRun L1TrackNtupleMaker_cfg.py inputFiles=' + input + ' outputFile=output/NuGun_PU200_D76_job' + str(job_counter) + '.root maxEvents=' + str(n_events) + '\n'
+		executable += 'cmsRun L1TrackNtupleMaker_cfg.py inputFiles=' + input + ' outputFile=output/' + submit_name + '_job' + str(job_counter) + '.root maxEvents=' + str(n_events) + '\n'
 		f2_name = 'job' + str(job_counter) + '/' + submit_name + '.sh'
 		f2 = open(f2_name, 'w')
 		f2.write(executable)

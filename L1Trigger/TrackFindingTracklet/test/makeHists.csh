@@ -14,6 +14,7 @@
 
 if ($#argv == 0) then
 	set rootFileName = "output/NuGun_PU200_D76.root"
+	# set rootFileName = "output/ZMM_PU200_D76.root"
 else
 	set rootFileName = $1
 endif
@@ -34,13 +35,14 @@ set fileStem = `echo $fileName | awk -F . '{print $1;}'`
 
 # Find plotting macro
 eval `scramv1 runtime -csh`
+# set plotMacro = $CMSSW_BASE/src/L1Trigger/TrackFindingTracklet/test/L1TrackNtuplePlot.C
 set plotMacro = $CMSSW_BASE/src/L1Trigger/TrackFindingTracklet/test/MiniPlot.C
 if ( -e $plotMacro ) then
 	# Run plotting macro
-	if (-e TrkPlots) rm -r TrkPlots
-	\root -l -b -q ${plotMacro}'("'${fileStem}'","'${dirName}'")' | tail -n 19 >! ${dirName}results.out
-	cat ${dirName}results.out
-	echo "Tracking performance summary written to ${dirName}results.out"
+	if (-e ${dirName}TrackPlots) rm -r ${dirName}TrackPlots
+	\root -l -b -q ${plotMacro}'("'${fileStem}'","'${dirName}'")' >! ${dirName}${fileStem}_results.out
+	cat ${dirName}${fileStem}_results.out
+	echo "Tracking performance summary written to ${dirName}${fileStem}_results.out"
 	echo "Histograms written to ${dirName}TrackPlots/"
 else if ( -e $plotMacro ) then
 else

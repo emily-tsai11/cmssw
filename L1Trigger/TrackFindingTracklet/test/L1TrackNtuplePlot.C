@@ -985,18 +985,18 @@ void L1TrackNtuplePlot(TString type,
     // sumpt in jets
     if (TP_select_injet > 0) {
       for (int ij=0; ij<(int)jet_tp_sumpt->size(); ij++) {
-	
+
 	float fraction = 0;
 	float fractionMatch = 0;
 	if (jet_tp_sumpt->at(ij) > 0) {
 	  fraction = jet_trk_sumpt->at(ij)/jet_tp_sumpt->at(ij);
 	  fractionMatch = jet_matchtrk_sumpt->at(ij)/jet_tp_sumpt->at(ij);
 	}
-	
+
 	h_jet_tp_sumpt_vspt->Fill(jet_tp_sumpt->at(ij),1.0);
 	h_jet_trk_sumpt_vspt->Fill(jet_tp_sumpt->at(ij),fraction);
 	h_jet_matchtrk_sumpt_vspt->Fill(jet_tp_sumpt->at(ij),fractionMatch);
-	
+
 	h_jet_tp_sumpt_vseta->Fill(jet_eta->at(ij),1.0);
 	h_jet_trk_sumpt_vseta->Fill(jet_eta->at(ij),fraction);
 	h_jet_matchtrk_sumpt_vseta->Fill(jet_eta->at(ij),fractionMatch);
@@ -1034,7 +1034,7 @@ void L1TrackNtuplePlot(TString type,
 
       // create overflow bins by restricting range of chi2
       int chi2Overflow = 100;
-      int chi2DOFOverflow = 20;  //apprx chi2Overflow / avg. nstubs
+      int chi2DOFOverflow = 20;  // approx. chi2Overflow / avg. nstubs
       double buffer = 0.1;
 
       if (chi2 > chi2Overflow)
@@ -2411,8 +2411,8 @@ void L1TrackNtuplePlot(TString type,
   char ctxt[500];
   TCanvas c;
 
-  gSystem->mkdir("TrkPlots");
-  TString DIR = "TrkPlots/";
+  gSystem->mkdir(type_dir + "TrackPlots");
+  TString DIR = type_dir + "TrackPlots/";
 
   // plots overlaying 68, 90, 99% confidence levels]
 
@@ -3460,40 +3460,40 @@ void L1TrackNtuplePlot(TString type,
   // sum track/ TP pt in jets
   /*
   if (TP_select_injet > 0) {
-    
+
     TH1F* h_frac_sumpt_vspt = (TH1F*) h_jet_trk_sumpt_vspt->Clone();
     h_frac_sumpt_vspt->SetName("frac_sumpt_vspt");
     h_frac_sumpt_vspt->GetYaxis()->SetTitle("L1 sum(p_{T}) / TP sum(p_{T})");
     h_frac_sumpt_vspt->Divide(h_jet_trk_sumpt_vspt, h_jet_tp_sumpt_vspt, 1.0, 1.0, "B");
-    
+
     TH1F* h_frac_sumpt_vseta = (TH1F*) h_jet_trk_sumpt_vseta->Clone();
     h_frac_sumpt_vseta->SetName("frac_sumpt_vseta");
     h_frac_sumpt_vseta->GetYaxis()->SetTitle("L1 sum(p_{T}) / TP sum(p_{T})");
     h_frac_sumpt_vseta->Divide(h_jet_trk_sumpt_vseta, h_jet_tp_sumpt_vseta, 1.0, 1.0, "B");
-    
-    
+
+
     TH1F* h_matchfrac_sumpt_vspt = (TH1F*) h_jet_matchtrk_sumpt_vspt->Clone();
     h_matchfrac_sumpt_vspt->SetName("matchfrac_sumpt_vspt");
     h_matchfrac_sumpt_vspt->GetYaxis()->SetTitle("Matched L1 sum(p_{T}) / TP sum(p_{T})");
     h_matchfrac_sumpt_vspt->Divide(h_jet_matchtrk_sumpt_vspt, h_jet_tp_sumpt_vspt, 1.0, 1.0, "B");
-    
+
     TH1F* h_matchfrac_sumpt_vseta = (TH1F*) h_jet_matchtrk_sumpt_vseta->Clone();
     h_matchfrac_sumpt_vseta->SetName("matchfrac_sumpt_vseta");
     h_matchfrac_sumpt_vseta->GetYaxis()->SetTitle("Matched L1 sum(p_{T}) / TP sum(p_{T})");
     h_matchfrac_sumpt_vseta->Divide(h_jet_matchtrk_sumpt_vseta, h_jet_tp_sumpt_vseta, 1.0, 1.0, "B");
 
-    
+
     h_frac_sumpt_vspt->Draw();
-    c.SaveAs(DIR+type+"_sumpt_vspt.pdf"); 
-    
+    c.SaveAs(DIR+type+"_sumpt_vspt.pdf");
+
     h_frac_sumpt_vseta->Draw();
-    c.SaveAs(DIR+type+"_sumpt_vseta.pdf"); 
-    
+    c.SaveAs(DIR+type+"_sumpt_vseta.pdf");
+
     h_matchfrac_sumpt_vspt->Draw();
-    c.SaveAs(DIR+type+"_sumpt_match_vspt.pdf"); 
-    
+    c.SaveAs(DIR+type+"_sumpt_match_vspt.pdf");
+
     h_matchfrac_sumpt_vseta->Draw();
-    c.SaveAs(DIR+type+"_sumpt_match_vseta.pdf"); 
+    c.SaveAs(DIR+type+"_sumpt_match_vseta.pdf");
   }
   */
 
