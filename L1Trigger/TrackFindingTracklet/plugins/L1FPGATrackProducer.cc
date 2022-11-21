@@ -100,6 +100,7 @@
 
 #include "L1Trigger/TrackTrigger/interface/StubPtConsistency.h"
 #include "L1Trigger/TrackTrigger/interface/L1TrackQuality.h"
+#include "L1Trigger/TrackFindingTracklet/interface/StubKiller.h"
 
 //////////////
 // STD HEADERS
@@ -169,6 +170,10 @@ private:
 
   // event processor for the tracklet track finding
   trklet::TrackletEventProcessor eventProcessor;
+
+  // used to "kill" stubs from a selected area of the detector
+  StubKiller* stubKiller_;
+  int failScenario_;
 
   unsigned int nHelixPar_;
   bool extended_;
@@ -249,6 +254,8 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   produces<std::vector<TTTrack<Ref_Phase2TrackerDigi_>>>("Level1TTTracks").setBranchAlias("Level1TTTracks");
 
   asciiEventOutName_ = iConfig.getUntrackedParameter<string>("asciiFileName", "");
+
+  failScenario_ = iConfig.getUntrackedParameter<int>("failScenario", 0);
 
   fitPatternFile = iConfig.getParameter<edm::FileInPath>("fitPatternFile");
   processingModulesFile = iConfig.getParameter<edm::FileInPath>("processingModulesFile");
@@ -397,6 +404,23 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   // tracker topology
   const TrackerTopology* const tTopo = &iSetup.getData(esGetTokenTTopo_);
   const TrackerGeometry* const theTrackerGeom = &iSetup.getData(esGetTokenTGeom_);
+
+  // ---------------------------------------------------------------------------
+  // Check killing stubs for detector degradation studies
+
+  int failType = 0;
+  if (failScenario_ < 0 || failScenario_ > 5) {
+    std::cout << "Invalid fail scenario! Ignoring input" << std::endl;
+  }
+  else {
+    failType = failScenario_;
+    std::cout << "Fail scenario is " << failType << std::endl;
+  }
+
+  stubKiller_ = new StubKiller();
+  stubKiller_->initialise(failType, tTopo, theTrackerGeom);
+
+  // ---------------------------------------------------------------------------
 
   ////////////////////////
   // GET THE PRIMITIVES //
@@ -602,31 +626,37 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
         const unsigned int intDetId = innerDetId.rawId();
 
-        ev.addStub(dtcname,
-                   region,
-                   layerdisk,
-                   stubwordhex,
-                   setup_->psModule(dtcId),
-                   isFlipped,
-                   tiltedBarrel,
-                   tiltedRingId,
-                   endcapRingId,
-                   intDetId,
-                   ttPos.x(),
-                   ttPos.y(),
-                   ttPos.z(),
-                   stubbend,
-                   stubRef->innerClusterPosition(),
-                   assocTPs,
-                   theStubIndex);
+        // Check killing stubs for detector degredation studies
+        const TTStub<Ref_Phase2TrackerDigi_> *theStub = &(*stubRef);
+        bool killThisStub = stubKiller_->killStub(theStub);
 
-        const trklet::L1TStub& lastStub = ev.lastStub();
-        stubMap[lastStub] = stubRef;
-        stubIndexMap[lastStub.uniqueIndex()] = stub.first;
-        theStubIndex++;
-      }
-    }
-  }
+        if(!killThisStub) {
+          ev.addStub(dtcname,
+                     region,
+                     layerdisk,
+                     stubwordhex,
+                     setup_->psModule(dtcId),
+                     isFlipped,
+                     tiltedBarrel,
+                     tiltedRingId,
+                     endcapRingId,
+                     intDetId,
+                     ttPos.x(),
+                     ttPos.y(),
+                     ttPos.z(),
+                     stubbend,
+                     stubRef->innerClusterPosition(),
+                     assocTPs,
+                     theStubIndex);
+
+          const trklet::L1TStub& lastStub = ev.lastStub();
+          stubMap[lastStub] = stubRef;
+          stubIndexMap[lastStub.uniqueIndex()] = stub.first;
+          theStubIndex++;
+        } // If not killing the stub
+      } // Loop over DTC stubs
+    } // Loop over channels
+  } // Loop over regions
 
   //////////////////////////
   // NOW RUN THE L1 tracking
