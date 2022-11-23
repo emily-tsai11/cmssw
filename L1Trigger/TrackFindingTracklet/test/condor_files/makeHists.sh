@@ -9,7 +9,7 @@ echo number of events = $2
 
 #################### CHANGE THESE ####################
 
-ROOT_FILE=test_submit
+ROOT_FILE=TTbar_PU200_D76
 NEW_DIR=fail_scenario_$1_e$2
 
 ######################################################
