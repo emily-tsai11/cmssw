@@ -83,12 +83,50 @@ void StubKiller::initialise(unsigned int killScenario, const TrackerTopology* tr
 		fractionOfModulesToKillEverywhere_ = 0;
 	}
 	// An extra scenario not listed in the slides
+	// Scenario 5
 	// 5% random module loss throughout tracker
 	else if ( killScenario_ == 5 ) {
 		layersToKill_ = {};
 		fractionOfStubsToKillInLayers_ = 0;
 		fractionOfStubsToKillEverywhere_ = 0.;
 		fractionOfModulesToKillEverywhere_ = 0.05;
+	}
+	// Nov 2022 -- the following scenarios are not listed in the slides
+	// Scenario 6
+	// 1% random module loss throughout tracker
+	else if ( killScenario_ == 6 ) {
+		layersToKill_ = {};
+		fractionOfStubsToKillInLayers_ = 0;
+		fractionOfStubsToKillEverywhere_ = 0.;
+		fractionOfModulesToKillEverywhere_ = 0.01;
+	}
+	// Scenario 7
+	// kill layer 5 in one quadrant +1 % random module loss
+	if ( killScenario_ == 7 ) {
+		layersToKill_ = {5};
+		minPhiToKill_ = 0;
+		maxPhiToKill_ = TMath::PiOver2();
+		minZToKill_ = -1000;
+		maxZToKill_ = 0;
+		minRToKill_ = 0;
+		maxRToKill_ = 1000;
+		fractionOfStubsToKillInLayers_ = 1;
+		fractionOfStubsToKillEverywhere_ = 0;
+		fractionOfModulesToKillEverywhere_ = 0.01;
+	}
+	// Scenario 8
+	// kill layer 1 in one quadrant +1 % random module loss
+	else if ( killScenario_ == 8 ) {
+		layersToKill_ = {1};
+		minPhiToKill_ = 0;
+		maxPhiToKill_ = TMath::PiOver2();
+		minZToKill_ = -1000;
+		maxZToKill_ = 0;
+		minRToKill_ = 0;
+		maxRToKill_ = 1000;
+		fractionOfStubsToKillInLayers_ = 1;
+		fractionOfStubsToKillEverywhere_ = 0;
+		fractionOfModulesToKillEverywhere_ = 0.01;
 	}
 
 	deadModules_.clear();
