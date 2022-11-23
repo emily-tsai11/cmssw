@@ -2,14 +2,17 @@ import os
 import sys
 from itertools import islice
 
-# submit_name = 'TTbar_PU200_D76'
-submit_name = 'test_submit'
+#################### CHANGE THESE ####################
+
+submit_name = 'TTbar_PU200_D76'
 
 # Number of sample file(s) processed per condor job
 n_file = 1
 
+######################################################
+
 # Name of the txt file used to help locate samples
-file_list = 'lists/test.list'
+file_list = 'lists/' + submit_name + '.list'
 
 with open(file_list, 'r') as f:
 
@@ -60,7 +63,7 @@ with open(file_list, 'r') as f:
         os.system('chmod 755 ' + f2_name) # Make .sh file executable
 
         # Submit the job using condor_submit command
-        # os.system('condor_submit ' + f1_name + ' executable=' + f2_name)
+        os.system('condor_submit ' + f1_name + ' executable=' + f2_name)
 
         # Increment the nth job
         job_counter += 1
