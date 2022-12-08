@@ -5,6 +5,8 @@ from itertools import islice
 #################### CHANGE THESE ####################
 
 submit_name = 'TTbar_PU200_D76'
+# submit_name = 'TTbar_noPU_D76'
+# submit_name = 'test'
 
 # Number of sample file(s) processed per condor job
 n_file = 1
@@ -35,7 +37,10 @@ with open(file_list, 'r') as f:
         condor += 'output\t\t\t\t= job' + str(job_counter) + '/' + submit_name + '.out\n'
         condor += 'log\t\t\t\t\t\t= job' + str(job_counter) + '/' + submit_name + '.log\n'
         condor += 'error\t\t\t\t\t= job' + str(job_counter) + '/' + submit_name + '.err\n'
-        condor += '+JobFlavour\t\t= "microcentury"\n'
+        condor += '+JobFlavour\t\t= "microcentury"\n' # 1 hour
+        # condor += '+JobFlavour\t\t= "longlunch"\n'    # 2 hours
+        # condor += '+JobFlavour\t\t= "workday"\n'      # 8 hours
+        # condor += '+JobFlavour\t\t= "tomorrow"\n'     # 1 day
         condor += 'queue\n'
         f1_name = 'job' + str(job_counter) + '/' + submit_name + '.condor'
         f1 = open(f1_name, 'w')

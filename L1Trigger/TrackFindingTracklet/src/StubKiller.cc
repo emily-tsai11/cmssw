@@ -25,6 +25,9 @@ void StubKiller::initialise(unsigned int killScenario, const TrackerTopology* tr
 	trackerTopology_ = trackerTopology;
 	trackerGeometry_ = trackerGeometry;
 
+  double minZ = -1000.0;
+  double maxZ = 0.0;
+
 	// These scenarios correspond to slide 12 of https://indico.cern.ch/event/719985/contributions/2970687/attachments/1634587/2607365/StressTestTF-Acosta-Apr18.pdf
 	// Scenario 1
 	// kill layer 5 in one quadrant +5 % random module loss to connect to what was done before
@@ -32,8 +35,8 @@ void StubKiller::initialise(unsigned int killScenario, const TrackerTopology* tr
 		layersToKill_ = {5};
 		minPhiToKill_ = 0;
 		maxPhiToKill_ = TMath::PiOver2();
-		minZToKill_ = -1000;
-		maxZToKill_ = 0;
+		minZToKill_ = minZ;
+		maxZToKill_ = maxZ;
 		minRToKill_ = 0;
 		maxRToKill_ = 1000;
 		fractionOfStubsToKillInLayers_ = 1;
@@ -46,8 +49,8 @@ void StubKiller::initialise(unsigned int killScenario, const TrackerTopology* tr
 		layersToKill_ = {1};
 		minPhiToKill_ = 0;
 		maxPhiToKill_ = TMath::PiOver2();
-		minZToKill_ = -1000;
-		maxZToKill_ = 0;
+    minZToKill_ = minZ;
+		maxZToKill_ = maxZ;
 		minRToKill_ = 0;
 		maxRToKill_ = 1000;
 		fractionOfStubsToKillInLayers_ = 1;
@@ -60,8 +63,8 @@ void StubKiller::initialise(unsigned int killScenario, const TrackerTopology* tr
 		layersToKill_ = {1, 2};
 		minPhiToKill_ = 0;
 		maxPhiToKill_ = TMath::PiOver2();
-		minZToKill_ = -1000;
-		maxZToKill_ = 0;
+    minZToKill_ = minZ;
+		maxZToKill_ = maxZ;
 		minRToKill_ = 0;
 		maxRToKill_ = 1000;
 		fractionOfStubsToKillInLayers_ = 1;
@@ -74,8 +77,8 @@ void StubKiller::initialise(unsigned int killScenario, const TrackerTopology* tr
 		layersToKill_ = {1, 11};
 		minPhiToKill_ = 0;
 		maxPhiToKill_ = TMath::PiOver2();
-		minZToKill_ = -1000;
-		maxZToKill_ = 0;
+    minZToKill_ = minZ;
+		maxZToKill_ = maxZ;
 		minRToKill_ = 0;
 		maxRToKill_ = 66.5;
 		fractionOfStubsToKillInLayers_ = 1;
@@ -106,8 +109,8 @@ void StubKiller::initialise(unsigned int killScenario, const TrackerTopology* tr
 		layersToKill_ = {5};
 		minPhiToKill_ = 0;
 		maxPhiToKill_ = TMath::PiOver2();
-		minZToKill_ = -1000;
-		maxZToKill_ = 0;
+    minZToKill_ = minZ;
+		maxZToKill_ = maxZ;
 		minRToKill_ = 0;
 		maxRToKill_ = 1000;
 		fractionOfStubsToKillInLayers_ = 1;
@@ -120,8 +123,8 @@ void StubKiller::initialise(unsigned int killScenario, const TrackerTopology* tr
 		layersToKill_ = {1};
 		minPhiToKill_ = 0;
 		maxPhiToKill_ = TMath::PiOver2();
-		minZToKill_ = -1000;
-		maxZToKill_ = 0;
+    minZToKill_ = minZ;
+		maxZToKill_ = maxZ;
 		minRToKill_ = 0;
 		maxRToKill_ = 1000;
 		fractionOfStubsToKillInLayers_ = 1;
