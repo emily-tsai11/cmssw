@@ -176,6 +176,13 @@ RAWEventContent = cms.PSet(
 )
 RAWEventContent.outputCommands.extend(L1TriggerRAW.outputCommands)
 RAWEventContent.outputCommands.extend(HLTriggerRAW.outputCommands)
+
+from Configuration.ProcessModifiers.approxSiStripClusters_cff import approxSiStripClusters
+approxSiStripClusters.toModify(RAWEventContent,
+                              outputCommands = RAWEventContent.outputCommands+[
+                                  'keep *_hltSiStripClusters2ApproxClusters_*_*'
+                              ])
+
 #
 #
 # HLTONLY Data Tier definition
@@ -612,6 +619,10 @@ FEVTDEBUGEventContent.outputCommands.extend(SimTrackerFEVTDEBUG.outputCommands)
 FEVTDEBUGEventContent.outputCommands.extend(SimMuonFEVTDEBUG.outputCommands)
 FEVTDEBUGEventContent.outputCommands.extend(SimCalorimetryFEVTDEBUG.outputCommands)
 FEVTDEBUGEventContent.outputCommands.extend(SimFastTimingFEVTDEBUG.outputCommands)
+approxSiStripClusters.toModify(FEVTDEBUGEventContent,
+                              outputCommands = FEVTDEBUGEventContent.outputCommands+[
+                                  'keep *_hltSiStripClusters2ApproxClusters_*_*'
+                              ])
 #
 #
 # FEVTDEBUGHLT Data Tier definition
@@ -626,6 +637,10 @@ FEVTDEBUGHLTEventContent.outputCommands.extend(HLTDebugFEVT.outputCommands)
 FEVTDEBUGHLTEventContent.outputCommands.append('keep *_*_MergedTrackTruth_*')
 FEVTDEBUGHLTEventContent.outputCommands.append('keep *_*_StripDigiSimLink_*')
 FEVTDEBUGHLTEventContent.outputCommands.append('keep *_*_PixelDigiSimLink_*')
+approxSiStripClusters.toModify(FEVTDEBUGHLTEventContent,
+                              outputCommands = FEVTDEBUGHLTEventContent.outputCommands+[
+                                  'keep *_hltSiStripClusters2ApproxClusters_*_*'
+                              ])
 
 from Configuration.ProcessModifiers.premix_stage2_cff import premix_stage2
 
@@ -769,6 +784,12 @@ REPACKRAWEventContent = cms.PSet(
 )
 REPACKRAWEventContent.outputCommands.extend(L1TriggerRAW.outputCommands)
 REPACKRAWEventContent.outputCommands.extend(HLTriggerRAW.outputCommands)
+approxSiStripClusters.toModify(REPACKRAWEventContent,
+                               outputCommands = REPACKRAWEventContent.outputCommands+[
+                                   'keep *_hltSiStripClusters2ApproxClusters_*_*',
+                                   'drop FEDRawDataCollection_rawDataRepacker_*_*',
+                                   'keep FEDRawDataCollection_rawPrimeDataRepacker_*_*'
+                               ])
 
 REPACKRAWSIMEventContent = cms.PSet(
     outputCommands = cms.untracked.vstring(),

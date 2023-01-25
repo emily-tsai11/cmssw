@@ -10,16 +10,13 @@ BSOnlineOmsServiceUrl = 'http://cmsoms-services.cms:9949/urn:xdaq-application:li
 useLockRecords = True
 
 import sys
-from Configuration.Eras.Era_Run3_cff import Run3
-process = cms.Process("BeamMonitor", Run3)
+if 'runkey=hi_run' in sys.argv:
+  from Configuration.Eras.Era_Run3_pp_on_PbPb_approxSiStripClusters_cff import Run3_pp_on_PbPb_approxSiStripClusters
+  process = cms.Process("BeamMonitor", Run3_pp_on_PbPb_approxSiStripClusters)
+else:
+  from Configuration.Eras.Era_Run3_cff import Run3
+  process = cms.Process("BeamMonitor", Run3)
 
-# Configure tag and jobName if running Playback system
-if "dqm_cmssw/playback" in str(sys.argv[1]):
-    BSOnlineTag = BSOnlineTag + 'Playback'
-    BSOnlineJobName = BSOnlineJobName + 'Playback'
-    BSOnlineOmsServiceUrl = ''
-    useLockRecords = False
-#
 process.MessageLogger = cms.Service("MessageLogger",
     debugModules = cms.untracked.vstring('*'),
     cerr = cms.untracked.PSet(
@@ -68,6 +65,14 @@ process.dqmEnvPixelLess = process.dqmEnv.clone(
   subSystemFolder = 'BeamMonitor_PixelLess'
 )
 
+# Configure tag and jobName if running Playback system
+if process.isDqmPlayback.value :
+    BSOnlineTag = BSOnlineTag + 'Playback'
+    BSOnlineJobName = BSOnlineJobName + 'Playback'
+    BSOnlineOmsServiceUrl = ''
+    useLockRecords = False
+#
+
 #---------------
 # Conditions
 if (live):
@@ -76,10 +81,11 @@ if (live):
 else:
     process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
     from Configuration.AlCa.GlobalTag import GlobalTag as gtCustomise
-    process.GlobalTag = gtCustomise(process.GlobalTag, 'auto:run2_data', '')
+    process.GlobalTag = gtCustomise(process.GlobalTag, 'auto:run3_data', '')
     process.GlobalTag.DBParameters.authenticationPath = '.'
     # you may need to set manually the GT in the line below
     #process.GlobalTag.globaltag = '100X_upgrade2018_realistic_v10'
+
 
 #--------------------------------------------------------
 # Swap offline <-> online BeamSpot as in Express and HLT
@@ -323,7 +329,7 @@ process.dqmBeamMonitor.resetPVEveryNLumi = 5 # was 10 for HI
 
 process.dqmBeamMonitor.PVFitter.minNrVerticesForFit = 20
 process.dqmBeamMonitor.PVFitter.minVertexNdf = 10
-process.dqmBeamMonitor.PVFitter.errorScale = 1.22
+process.dqmBeamMonitor.PVFitter.errorScale = 1.0
 
 #----------------------------
 # Pixel tracks/vertices reco
@@ -427,12 +433,32 @@ else:
         frontierKey = cms.untracked.string(options.runUniqueKey)
     )
 print("Configured frontierKey", options.runUniqueKey)
+
+#--------
+# Do no run on events with pixel or strip with HV off
+
+process.stripTrackerHVOn = cms.EDFilter( "DetectorStateFilter",
+    DCSRecordLabel = cms.untracked.InputTag( "onlineMetaDataDigis" ),
+    DcsStatusLabel = cms.untracked.InputTag( "scalersRawToDigi" ),
+    DebugOn = cms.untracked.bool( False ),
+    DetectorType = cms.untracked.string( "sistrip" )
+)
+
+process.pixelTrackerHVOn = cms.EDFilter( "DetectorStateFilter",
+    DCSRecordLabel = cms.untracked.InputTag( "onlineMetaDataDigis" ),
+    DcsStatusLabel = cms.untracked.InputTag( "scalersRawToDigi" ),
+    DebugOn = cms.untracked.bool( False ),
+    DetectorType = cms.untracked.string( "pixel" )
+)
+
 #---------
 # Final path
 if (not process.runType.getRunType() == process.runType.hi_run):
     process.p = cms.Path(process.scalersRawToDigi
                        * process.tcdsDigis
                        * process.onlineMetaDataDigis
+                       * process.pixelTrackerHVOn
+                       * process.stripTrackerHVOn
                        * process.dqmTKStatus
                        * process.hltTriggerTypeFilter
                        * process.dqmcommon
@@ -443,6 +469,8 @@ else:
     process.p = cms.Path(process.scalersRawToDigi
                        * process.tcdsDigis
                        * process.onlineMetaDataDigis
+                       * process.pixelTrackerHVOn
+                       * process.stripTrackerHVOn
                        * process.dqmTKStatus
                        * process.hltTriggerTypeFilter
                        * process.filter_step # the only extra: pix-multi filter
@@ -451,5 +479,6 @@ else:
                        * process.monitor
                        * process.BeamSpotProblemModule)
 
+print("Global Tag used:", process.GlobalTag.globaltag.value())
 print("Final Source settings:", process.source)
 

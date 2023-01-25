@@ -282,6 +282,17 @@ SKIMStreamEXODelayedJet = cms.FilteredStream(
     dataTier = cms.untracked.string('AOD')
     )
 
+from Configuration.Skimming.PDWG_EXODelayedJetMET_cff import *
+EXODelayedJetMETPath = cms.Path(EXODelayedJetMETSkimSequence)
+SKIMStreamEXODelayedJetMET = cms.FilteredStream(
+    responsible = 'PDWG',
+    name = 'EXODelayedJetMET',
+    paths = (EXODelayedJetMETPath),
+    content = skimRawAODContent.outputCommands,
+    selectEvents = cms.untracked.PSet(),
+    dataTier = cms.untracked.string('AOD')
+    )
+
 from Configuration.Skimming.PDWG_EXODTCluster_cff import *
 EXODTClusterPath = cms.Path(EXODTClusterSkimSequence)
 SKIMStreamEXODTCluster = cms.FilteredStream(
@@ -292,6 +303,18 @@ SKIMStreamEXODTCluster = cms.FilteredStream(
     selectEvents = cms.untracked.PSet(),
     dataTier = cms.untracked.string('AOD')
     )
+
+from Configuration.Skimming.PDWG_EXOCSCCluster_cff import *
+EXOCSCClusterPath = cms.Path(EXOCSCClusterSkimSequence)
+SKIMStreamEXOCSCCluster = cms.FilteredStream(
+    responsible = 'PDWG',
+    name = 'EXOCSCCluster',
+    paths = (EXOCSCClusterPath),
+    content = skimRawAODContent.outputCommands+['keep *_csc2DRecHits_*_*','keep *_dt1DRecHits_*_*'],
+    selectEvents = cms.untracked.PSet(),
+    dataTier = cms.untracked.string('USER')
+    )
+
 
 from Configuration.Skimming.PDWG_EXODisappTrk_cff import *
 EXODisappTrkPath = cms.Path(EXODisappTrkSkimSequence)

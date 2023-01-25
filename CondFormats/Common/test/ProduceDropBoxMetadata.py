@@ -53,19 +53,21 @@ SiStripBadStripRcdHitEff_prep_str = encodeJsonInString("SiStripBadStripFromHitEf
 #SiStripApvGainRcd
 SiStripApvGainRcd_prod_str = encodeJsonInString("SiStripApvGainRcd_prod.json")
 SiStripApvGainRcd_multirun_prod_str = encodeJsonInString("SiStripApvGainRcd_multirun_prod.json") 
-SiStripApvGainRcdAfterAbortGap_prod_str = encodeJsonInString("SiStripApvGainRcdAfterAbortGap_prod.json") # can be removed, once 92x deployed
-SiStripApvGainRcdAAG_prod_str = encodeJsonInString("SiStripApvGainRcdAAG_prod.json") # will take over
+SiStripApvGainRcdAAG_prod_str = encodeJsonInString("SiStripApvGainRcdAAG_prod.json")
 SiStripApvGainRcdAAG_multirun_prod_str = encodeJsonInString("SiStripApvGainRcdAAG_multirun_prod.json")
 
 SiStripApvGainRcd_prep_str = encodeJsonInString("SiStripApvGainRcd_prep.json")
 SiStripApvGainRcd_multirun_prep_str = encodeJsonInString("SiStripApvGainRcd_multirun_prep.json")
-SiStripApvGainRcdAfterAbortGap_prep_str = encodeJsonInString("SiStripApvGainRcdAfterAbortGap_prep.json") # can be removed, once 92x deployed
-SiStripApvGainRcdAAG_prep_str = encodeJsonInString("SiStripApvGainRcdAAG_prep.json") # will take over
+SiStripApvGainRcdAAG_prep_str = encodeJsonInString("SiStripApvGainRcdAAG_prep.json")
 SiStripApvGainRcdAAG_multirun_prep_str = encodeJsonInString("SiStripApvGainRcdAAG_multirun_prep.json")
 
 #SiPixelAli
 SiPixelAliRcd_prod_str = encodeJsonInString("SiPixelAliRcd_prod.json")
 SiPixelAliRcd_prep_str = encodeJsonInString("SiPixelAliRcd_prep.json")
+
+#SiPixelAliHG
+SiPixelAliHGRcd_prod_str = encodeJsonInString("SiPixelAliHGRcd_prod.json")
+SiPixelAliHGRcd_prep_str = encodeJsonInString("SiPixelAliHGRcd_prep.json")
 
 #EcalPedestalsRcd
 EcalPedestalsRcd_prod_str = encodeJsonInString("EcalPedestal_prod.json")
@@ -155,13 +157,13 @@ process.mywriter = cms.EDAnalyzer("ProduceDropBoxMetadata",
                                                                prodMetaData        = cms.untracked.string(SiPixelAliRcd_prod_str),
                                                                prepMetaData        = cms.untracked.string(SiPixelAliRcd_prep_str),
                                                                ),
-                                                      cms.PSet(record              = cms.untracked.string('SiStripApvGainRcdAfterAbortGap'), # can be removed, once 92x deployed...
+                                                      cms.PSet(record              = cms.untracked.string('TrackerAlignmentHGRcd'),
                                                                Source              = cms.untracked.string("AlcaHarvesting"),
                                                                FileClass           = cms.untracked.string("ALCA"),
-                                                               prodMetaData        = cms.untracked.string(SiStripApvGainRcdAfterAbortGap_prod_str),
-                                                               prepMetaData        = cms.untracked.string(SiStripApvGainRcdAfterAbortGap_prep_str),
+                                                               prodMetaData        = cms.untracked.string(SiPixelAliHGRcd_prod_str),
+                                                               prepMetaData        = cms.untracked.string(SiPixelAliHGRcd_prep_str),
                                                                ),
-                                                      cms.PSet(record              = cms.untracked.string('SiStripApvGainRcdAAG'), # ... will take over
+                                                      cms.PSet(record              = cms.untracked.string('SiStripApvGainRcdAAG'),
                                                                Source              = cms.untracked.string("AlcaHarvesting"),
                                                                FileClass           = cms.untracked.string("ALCA"),
                                                                prodMetaData        = cms.untracked.string(SiStripApvGainRcdAAG_prod_str),
@@ -213,18 +215,18 @@ process.mywriter = cms.EDAnalyzer("ProduceDropBoxMetadata",
                                                                prodMetaData        = cms.untracked.string(CTPPSRPAlignmentCorrectionsDataRcd_prod_str),
                                                                prepMetaData        = cms.untracked.string(CTPPSRPAlignmentCorrectionsDataRcd_prep_str),
                                                                ),
-                                                      cms.PSet(record              = cms.untracked.string('PPSTimingCalibrationRcd'),
+                                                      cms.PSet(record              = cms.untracked.string('PPSTimingCalibrationRcd_HPTDC'),
                                                                Source              = cms.untracked.string("AlcaHarvesting"),
                                                                FileClass           = cms.untracked.string("ALCA"),
                                                                prodMetaData        = cms.untracked.string(PPSTimingCalibrationRcd_prod_str),
                                                                prepMetaData        = cms.untracked.string(PPSTimingCalibrationRcd_prep_str),
                                                                ),
-                                                      cms.PSet(record              = cms.untracked.string('PPSTimingCalibrationRcd_Sampic'),
+                                                      cms.PSet(record              = cms.untracked.string('PPSTimingCalibrationRcd_SAMPIC'),
                                                                Source              = cms.untracked.string("AlcaHarvesting"),
                                                                FileClass           = cms.untracked.string("ALCA"),
                                                                prodMetaData        = cms.untracked.string(PPSTimingCalibrationRcd_Sampic_prod_str),
                                                                prepMetaData        = cms.untracked.string(PPSTimingCalibrationRcd_Sampic_prep_str),
-                                                               ),
+                                                               )
                                                       ),
                                   # this boolean will read the content of whichever payload is available and print its content to stoutput
                                   # set this to false if you write out a sqlite.db translating the json's into a payload

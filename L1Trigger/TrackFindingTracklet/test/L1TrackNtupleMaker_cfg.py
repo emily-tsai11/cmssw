@@ -150,19 +150,19 @@ process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
 
 # HYBRID: prompt tracking
 if (L1TRKALGO == 'HYBRID'):
-    process.TTTracksEmulation = cms.Path(process.L1HybridTracks)
-    process.TTTracksEmulationWithTruth = cms.Path(process.L1HybridTracksWithAssociators)
+    process.TTTracksEmulation = cms.Path(process.L1THybridTracks)
+    process.TTTracksEmulationWithTruth = cms.Path(process.L1THybridTracksWithAssociators)
     NHELIXPAR = 4
-    L1TRK_NAME  = "TTTracksFromTrackletEmulation"
+    L1TRK_NAME  = "l1tTTTracksFromTrackletEmulation"
     L1TRK_LABEL = "Level1TTTracks"
     L1TRUTH_NAME = "TTTrackAssociatorFromPixelDigis"
 
 # HYBRID: extended tracking
 elif (L1TRKALGO == 'HYBRID_DISPLACED'):
-    process.TTTracksEmulation = cms.Path(process.L1ExtendedHybridTracks)
-    process.TTTracksEmulationWithTruth = cms.Path(process.L1ExtendedHybridTracksWithAssociators)
+    process.TTTracksEmulation = cms.Path(process.L1TExtendedHybridTracks)
+    process.TTTracksEmulationWithTruth = cms.Path(process.L1TExtendedHybridTracksWithAssociators)
     NHELIXPAR = 5
-    L1TRK_NAME  = "TTTracksFromExtendedTrackletEmulation"
+    L1TRK_NAME  = "l1tTTTracksFromExtendedTrackletEmulation"
     L1TRK_LABEL = "Level1TTTracks"
     L1TRUTH_NAME = "TTTrackAssociatorFromPixelDigisExtended"
 
@@ -194,7 +194,7 @@ elif (L1TRKALGO == 'TRACKLET'):
     process.TTTracksEmulation = cms.Path(process.L1HybridTracks)
     process.TTTracksEmulationWithTruth = cms.Path(process.L1HybridTracksWithAssociators)
     NHELIXPAR = 4
-    L1TRK_NAME  = "TTTracksFromTrackletEmulation"
+    L1TRK_NAME  = "l1tTTTracksFromTrackletEmulation"
     L1TRK_LABEL = "Level1TTTracks"
     L1TRUTH_NAME = "TTTrackAssociatorFromPixelDigis"
 

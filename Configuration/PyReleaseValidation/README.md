@@ -57,6 +57,7 @@ The offsets currently in use are:
 * 0.13: MLPF algorithm
 * 0.15: JME NanoAOD
 * 0.17: Run-3 deep core seeding for JetCore iteration
+* 0.19: ECAL SuperClustering with DeepSC algorithm
 * 0.21: Production-like sequence
 * 0.24: 0 Tesla (Run-2, Run-3)
 * 0.31: Photon energy corrections with DRN architecture
@@ -76,7 +77,6 @@ The offsets currently in use are:
 * 0.103: Phase-2 aging, 3000fb-1
 * 0.201: HGCAL special TICL Pattern recognition Workflows: clue3D
 * 0.202: HGCAL special TICL Pattern recognition Workflows: FastJet
-* 0.301: FastSim Run-3
 * 0.302: FastSim Run-3 trackingOnly validation
 * 0.303: FastSim Run-3 MB for mixing
 * 0.9001: Sonic Triton

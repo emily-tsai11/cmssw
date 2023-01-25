@@ -238,7 +238,7 @@ fragment.load("HLTrigger/Configuration/HLT_75e33/paths/HLTriggerFinalPath_cff")
 fragment.load("HLTrigger/Configuration/HLT_75e33/paths/HLTAnalyzerEndpath_cff")
 
 fragment.schedule = cms.Schedule(*[
-    fragment.l1tReconstructionPath,
+    fragment.L1TReconstructionPath,
 
     fragment.L1T_SinglePFPuppiJet230off,
     fragment.L1T_PFPuppiHT450off,
@@ -317,27 +317,27 @@ del fragment.offlineBeamSpot
 del fragment.me0RecHits
 del fragment.me0Segments
 
-del fragment.L1EGammaClusterEmuProducer
+del fragment.l1tEGammaClusterEmuProducer
 #del fragment.L1TkElectronsEllipticMatchCrystal
 #del fragment.L1TkElectronsEllipticMatchHGC
 #del fragment.L1TkMuons
 #del fragment.L1TkPhotonsCrystal
 #del fragment.L1TkPhotonsHGC
-del fragment.L1TkPrimaryVertex
-del fragment.l1EGammaEEProducer
-del fragment.l1NNTauProducerPuppi
-del fragment.l1PFMetPuppi
-del fragment.l1pfCandidates
-del fragment.l1pfProducerBarrel
-del fragment.l1pfProducerHF
-del fragment.l1pfProducerHGCal
-del fragment.l1pfProducerHGCalNoTK
-del fragment.pfClustersFromCombinedCaloHCal
-del fragment.pfClustersFromCombinedCaloHF
-del fragment.pfClustersFromHGC3DClusters
-del fragment.pfClustersFromL1EGClusters
-del fragment.pfTracksFromL1TracksBarrel
-del fragment.pfTracksFromL1TracksHGCal
+#del fragment.L1TkPrimaryVertex
+del fragment.l1tEGammaEEProducer
+del fragment.l1tNNTauProducerPuppi
+#del fragment.l1PFMetPuppi
+#del fragment.l1pfCandidates
+#del fragment.l1pfProducerBarrel
+#del fragment.l1pfProducerHF
+#del fragment.l1pfProducerHGCal
+#del fragment.l1pfProducerHGCalNoTK
+#del fragment.pfClustersFromCombinedCaloHCal
+#del fragment.pfClustersFromCombinedCaloHF
+#del fragment.pfClustersFromHGC3DClusters
+#del fragment.pfClustersFromL1EGClusters
+#del fragment.pfTracksFromL1TracksBarrel
+#del fragment.pfTracksFromL1TracksHGCal
 del fragment.simCaloStage2Layer1Digis
 del fragment.simCscTriggerPrimitiveDigis
 del fragment.simDtTriggerPrimitiveDigis
@@ -350,3 +350,4 @@ del fragment.simMuonGEMPadDigiClusters
 del fragment.simMuonGEMPadDigis
 del fragment.simOmtfDigis
 del fragment.simTwinMuxDigis
+

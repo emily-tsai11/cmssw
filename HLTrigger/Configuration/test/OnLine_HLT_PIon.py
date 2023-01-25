@@ -1,6 +1,6 @@
-# hltGetConfiguration --full --data /dev/CMSSW_12_4_0/PIon --type PIon --unprescale --process HLTPIon --globaltag auto:run3_hlt_PIon --input file:RelVal_Raw_PIon_DATA.root
+# hltGetConfiguration /dev/CMSSW_12_5_0/PIon --full --data --type PIon --unprescale --process HLTPIon --globaltag auto:run3_hlt_PIon --input file:RelVal_Raw_PIon_DATA.root
 
-# /dev/CMSSW_12_4_0/PIon/V22 (CMSSW_12_4_0_pre4)
+# /dev/CMSSW_12_5_0/PIon/V17 (CMSSW_12_5_2)
 
 import FWCore.ParameterSet.Config as cms
 
@@ -12,7 +12,7 @@ process = cms.Process( "HLTPIon" )
 process.ProcessAcceleratorCUDA = ProcessAcceleratorCUDA()
 
 process.HLTConfigVersion = cms.PSet(
-  tableName = cms.string('/dev/CMSSW_12_4_0/PIon/V22')
+  tableName = cms.string('/dev/CMSSW_12_5_0/PIon/V17')
 )
 
 process.transferSystem = cms.PSet( 
@@ -2573,12 +2573,12 @@ process.streams = cms.PSet(
     'ZeroBias' )
 )
 process.datasets = cms.PSet( 
-  HLTPhysics = cms.vstring( 'HLT_Physics_v7' ),
-  OnlineMonitor = cms.vstring( 'HLT_Physics_v7',
+  HLTPhysics = cms.vstring( 'HLT_Physics_v8' ),
+  OnlineMonitor = cms.vstring( 'HLT_Physics_v8',
     'HLT_Random_v3',
-    'HLT_ZeroBias_v6' ),
+    'HLT_ZeroBias_v7' ),
   ZeroBias = cms.vstring( 'HLT_Random_v3',
-    'HLT_ZeroBias_v6' )
+    'HLT_ZeroBias_v7' )
 )
 
 process.CSCChannelMapperESSource = cms.ESSource( "EmptyESSource",
@@ -4916,26 +4916,15 @@ process.FastTimerService = cms.Service( "FastTimerService",
     dqmPath = cms.untracked.string( "HLT/TimerService" ),
 )
 process.MessageLogger = cms.Service( "MessageLogger",
-    suppressWarning = cms.untracked.vstring( 'hltOnlineBeamSpot',
-      'hltCtf3HitL1SeededWithMaterialTracks',
-      'hltL3MuonsOIState',
-      'hltPixelTracksForHighMult',
-      'hltHITPixelTracksHE',
-      'hltHITPixelTracksHB',
-      'hltCtfL1SeededWithMaterialTracks',
-      'hltRegionalTracksForL3MuonIsolation',
-      'hltSiPixelClusters',
-      'hltActivityStartUpElectronPixelSeeds',
-      'hltLightPFTracks',
-      'hltPixelVertices3DbbPhi',
-      'hltL3MuonsIOHit',
-      'hltPixelTracks',
-      'hltSiPixelDigis',
+    suppressWarning = cms.untracked.vstring( 'hltL3MuonsIOHit',
       'hltL3MuonsOIHit',
-      'hltL1SeededElectronGsfTracks',
-      'hltL1SeededStartUpElectronPixelSeeds',
-      'hltBLifetimeRegionalCtfWithMaterialTracksbbPhiL1FastJetFastPV',
-      'hltCtfActivityWithMaterialTracks' ),
+      'hltL3MuonsOIState',
+      'hltLightPFTracks',
+      'hltOnlineBeamSpot',
+      'hltPixelTracks',
+      'hltPixelTracksForHighMult',
+      'hltSiPixelClusters',
+      'hltSiPixelDigis' ),
     suppressFwkInfo = cms.untracked.vstring(  ),
     suppressInfo = cms.untracked.vstring(  ),
     suppressDebug = cms.untracked.vstring(  ),
@@ -4956,19 +4945,17 @@ process.MessageLogger = cms.Service( "MessageLogger",
       ),
       threshold = cms.untracked.string( "INFO" ),
     ),
-    suppressError = cms.untracked.vstring( 'hltOnlineBeamSpot',
-      'hltL3MuonCandidates',
+    suppressError = cms.untracked.vstring( 'hltL3TkTracksFromL2IOHit',
+      'hltL3TkTracksFromL2OIHit',
       'hltL3TkTracksFromL2OIState',
-      'hltPFJetCtfWithMaterialTracks',
-      'hltL3TkTracksFromL2IOHit',
-      'hltL3TkTracksFromL2OIHit' )
+      'hltOnlineBeamSpot' )
 )
 process.ThroughputService = cms.Service( "ThroughputService",
     eventRange = cms.untracked.uint32( 10000 ),
     eventResolution = cms.untracked.uint32( 1 ),
     printEventSummary = cms.untracked.bool( False ),
     enableDQM = cms.untracked.bool( True ),
-    dqmPathByProcesses = cms.untracked.bool( False ),
+    dqmPathByProcesses = cms.untracked.bool( True ),
     dqmPath = cms.untracked.string( "HLT/Throughput" ),
     timeRange = cms.untracked.double( 60000.0 ),
     timeResolution = cms.untracked.double( 5.828 )
@@ -5028,6 +5015,7 @@ process.hltGtStage2ObjectMap = cms.EDProducer( "L1TGlobalProducer",
     AlgorithmTriggersUnmasked = cms.bool( True ),
     useMuonShowers = cms.bool( True ),
     resetPSCountersEachLumiSec = cms.bool( True ),
+    semiRandomInitialPSCounters = cms.bool( False ),
     ProduceL1GtDaqRecord = cms.bool( True ),
     ProduceL1GtObjectMapRecord = cms.bool( True ),
     EmulateBxInEvent = cms.int32( 1 ),
@@ -5085,9 +5073,9 @@ process.hltPreZeroBias = cms.EDFilter( "HLTPrescaler",
     offset = cms.uint32( 0 ),
     L1GtReadoutRecordTag = cms.InputTag( "hltGtStage2Digis" )
 )
-process.hltFEDSelector = cms.EDProducer( "EvFFEDSelector",
+process.hltFEDSelectorTCDS = cms.EDProducer( "EvFFEDSelector",
     inputTag = cms.InputTag( "rawDataCollector" ),
-    fedList = cms.vuint32( 1023, 1024 )
+    fedList = cms.vuint32( 1024, 1025 )
 )
 process.hltTriggerSummaryAOD = cms.EDProducer( "TriggerSummaryProducerAOD",
     throw = cms.bool( False ),
@@ -5128,7 +5116,7 @@ process.hltDatasetHLTPhysics = cms.EDFilter( "TriggerResultsFilter",
     l1tResults = cms.InputTag( "" ),
     l1tIgnoreMaskAndPrescale = cms.bool( False ),
     throw = cms.bool( True ),
-    triggerConditions = cms.vstring( 'HLT_Physics_v7' )
+    triggerConditions = cms.vstring( 'HLT_Physics_v8' )
 )
 process.hltPreDatasetHLTPhysics = cms.EDFilter( "HLTPrescaler",
     offset = cms.uint32( 0 ),
@@ -5140,9 +5128,9 @@ process.hltDatasetOnlineMonitor = cms.EDFilter( "TriggerResultsFilter",
     l1tResults = cms.InputTag( "" ),
     l1tIgnoreMaskAndPrescale = cms.bool( False ),
     throw = cms.bool( True ),
-    triggerConditions = cms.vstring( 'HLT_Physics_v7',
+    triggerConditions = cms.vstring( 'HLT_Physics_v8',
       'HLT_Random_v3 / 3',
-      'HLT_ZeroBias_v6 / 3' )
+      'HLT_ZeroBias_v7 / 3' )
 )
 process.hltPreDatasetOnlineMonitor = cms.EDFilter( "HLTPrescaler",
     offset = cms.uint32( 0 ),
@@ -5155,7 +5143,7 @@ process.hltDatasetZeroBias = cms.EDFilter( "TriggerResultsFilter",
     l1tIgnoreMaskAndPrescale = cms.bool( False ),
     throw = cms.bool( True ),
     triggerConditions = cms.vstring( 'HLT_Random_v3',
-      'HLT_ZeroBias_v6' )
+      'HLT_ZeroBias_v7' )
 )
 process.hltPreDatasetZeroBias = cms.EDFilter( "HLTPrescaler",
     offset = cms.uint32( 0 ),
@@ -5163,32 +5151,18 @@ process.hltPreDatasetZeroBias = cms.EDFilter( "HLTPrescaler",
 )
 
 process.statusOnGPU = SwitchProducerCUDA(
-   cuda = cms.EDProducer( "BooleanProducer",
-       value = cms.bool( True )
-   ),
-  cpu = cms.EDProducer( "BooleanProducer",
+   cpu = cms.EDProducer( "BooleanProducer",
        value = cms.bool( False )
+   ),
+  cuda = cms.EDProducer( "BooleanProducer",
+       value = cms.bool( True )
    ),
  )
 
-process.hltOutputPhysicsCommissioning = cms.OutputModule( "PoolOutputModule",
-    fileName = cms.untracked.string( "outputPhysicsCommissioning.root" ),
-    fastCloning = cms.untracked.bool( False ),
-    dataset = cms.untracked.PSet(
-        filterName = cms.untracked.string( "" ),
-        dataTier = cms.untracked.string( "RAW" )
-    ),
-    SelectEvents = cms.untracked.PSet(  SelectEvents = cms.vstring( 'Dataset_HLTPhysics',
-  'Dataset_ZeroBias' ) ),
-    outputCommands = cms.untracked.vstring( 'drop *',
-      'keep FEDRawDataCollection_rawDataCollector_*_*',
-      'keep FEDRawDataCollection_source_*_*',
-      'keep GlobalObjectMapRecord_hltGtStage2ObjectMap_*_*',
-      'keep edmTriggerResults_*_*_*',
-      'keep triggerTriggerEvent_*_*_*' )
-)
 process.hltOutputDQM = cms.OutputModule( "PoolOutputModule",
     fileName = cms.untracked.string( "outputDQM.root" ),
+    compressionAlgorithm = cms.untracked.string( "ZLIB" ),
+    compressionLevel = cms.untracked.int32( 1 ),
     fastCloning = cms.untracked.bool( False ),
     dataset = cms.untracked.PSet(
         filterName = cms.untracked.string( "" ),
@@ -5201,15 +5175,10 @@ process.hltOutputDQM = cms.OutputModule( "PoolOutputModule",
       'keep *_hltEcalRecHit_*_*',
       'keep *_hltEgammaCandidates_*_*',
       'keep *_hltEgammaGsfElectrons_*_*',
-      'keep *_hltFullIterativeTrackingMergedForRefPP_*_*',
       'keep *_hltHbhereco_*_*',
       'keep *_hltHfreco_*_*',
       'keep *_hltHoreco_*_*',
-      'keep *_hltIter0HighPtTkMuPixelTracks_*_*',
       'keep *_hltIter0HighPtTkMuTrackSelectionHighPurity_*_*',
-      'keep *_hltIter2HighPtTkMuMerged_*_*',
-      'keep *_hltIter2HighPtTkMuTrackSelectionHighPurity_*_*',
-      'keep *_hltIter2Merged_*_*',
       'keep *_hltL3NoFiltersNoVtxMuonCandidates_*_*',
       'keep *_hltMergedTracks_*_*',
       'keep *_hltOnlineBeamSpot_*_*',
@@ -5220,6 +5189,24 @@ process.hltOutputDQM = cms.OutputModule( "PoolOutputModule",
       'keep *_hltSiPixelClustersCache_*_*',
       'keep *_hltSiPixelClusters_*_*',
       'keep *_hltSiStripRawToClustersFacility_*_*',
+      'keep FEDRawDataCollection_rawDataCollector_*_*',
+      'keep FEDRawDataCollection_source_*_*',
+      'keep GlobalObjectMapRecord_hltGtStage2ObjectMap_*_*',
+      'keep edmTriggerResults_*_*_*',
+      'keep triggerTriggerEvent_*_*_*' )
+)
+process.hltOutputPhysicsCommissioning = cms.OutputModule( "PoolOutputModule",
+    fileName = cms.untracked.string( "outputPhysicsCommissioning.root" ),
+    compressionAlgorithm = cms.untracked.string( "ZLIB" ),
+    compressionLevel = cms.untracked.int32( 1 ),
+    fastCloning = cms.untracked.bool( False ),
+    dataset = cms.untracked.PSet(
+        filterName = cms.untracked.string( "" ),
+        dataTier = cms.untracked.string( "RAW" )
+    ),
+    SelectEvents = cms.untracked.PSet(  SelectEvents = cms.vstring( 'Dataset_HLTPhysics',
+  'Dataset_ZeroBias' ) ),
+    outputCommands = cms.untracked.vstring( 'drop *',
       'keep FEDRawDataCollection_rawDataCollector_*_*',
       'keep FEDRawDataCollection_source_*_*',
       'keep GlobalObjectMapRecord_hltGtStage2ObjectMap_*_*',
@@ -5238,12 +5225,11 @@ process.HLTDatasetPathBeginSequence = cms.Sequence( process.hltGtStage2Digis )
 process.HLTriggerFirstPath = cms.Path( process.hltGetRaw + process.hltPSetMap + process.hltBoolFalse )
 process.Status_OnCPU = cms.Path( process.statusOnGPU + ~process.statusOnGPUFilter )
 process.Status_OnGPU = cms.Path( process.statusOnGPU + process.statusOnGPUFilter )
-process.HLT_Physics_v7 = cms.Path( process.HLTBeginSequenceL1Fat + process.hltPrePhysics + process.HLTEndSequence )
+process.HLT_Physics_v8 = cms.Path( process.HLTBeginSequenceL1Fat + process.hltPrePhysics + process.HLTEndSequence )
 process.HLT_Random_v3 = cms.Path( process.HLTBeginSequenceRandom + process.hltPreRandom + process.HLTEndSequence )
-process.HLT_ZeroBias_v6 = cms.Path( process.HLTBeginSequence + process.hltL1sZeroBias + process.hltPreZeroBias + process.HLTEndSequence )
-process.HLTriggerFinalPath = cms.Path( process.hltGtStage2Digis + process.hltScalersRawToDigi + process.hltFEDSelector + process.hltTriggerSummaryAOD + process.hltTriggerSummaryRAW + process.hltBoolFalse )
+process.HLT_ZeroBias_v7 = cms.Path( process.HLTBeginSequence + process.hltL1sZeroBias + process.hltPreZeroBias + process.HLTEndSequence )
+process.HLTriggerFinalPath = cms.Path( process.hltGtStage2Digis + process.hltScalersRawToDigi + process.hltFEDSelectorTCDS + process.hltTriggerSummaryAOD + process.hltTriggerSummaryRAW + process.hltBoolFalse )
 process.HLTAnalyzerEndpath = cms.EndPath( process.hltGtStage2Digis + process.hltPreHLTAnalyzerEndpath + process.hltL1TGlobalSummary + process.hltTrigReport )
-process.PhysicsCommissioningOutput = cms.FinalPath( process.hltOutputPhysicsCommissioning )
 
 # load the DQMStore and DQMRootOutputModule
 process.load( "DQMServices.Core.DQMStore_cfi" )
@@ -5252,12 +5238,13 @@ process.dqmOutput = cms.OutputModule("DQMRootOutputModule",
     fileName = cms.untracked.string("DQMIO.root")
 )
 process.DQMOutput = cms.FinalPath( process.dqmOutput + process.hltOutputDQM )
+process.PhysicsCommissioningOutput = cms.FinalPath( process.hltOutputPhysicsCommissioning )
 process.Dataset_HLTPhysics = cms.Path( process.HLTDatasetPathBeginSequence + process.hltDatasetHLTPhysics + process.hltPreDatasetHLTPhysics )
 process.Dataset_OnlineMonitor = cms.Path( process.HLTDatasetPathBeginSequence + process.hltDatasetOnlineMonitor + process.hltPreDatasetOnlineMonitor )
 process.Dataset_ZeroBias = cms.Path( process.HLTDatasetPathBeginSequence + process.hltDatasetZeroBias + process.hltPreDatasetZeroBias )
 
 
-process.schedule = cms.Schedule( *(process.HLTriggerFirstPath, process.Status_OnCPU, process.Status_OnGPU, process.HLT_Physics_v7, process.HLT_Random_v3, process.HLT_ZeroBias_v6, process.HLTriggerFinalPath, process.HLTAnalyzerEndpath, process.PhysicsCommissioningOutput, process.DQMOutput, process.Dataset_HLTPhysics, process.Dataset_OnlineMonitor, process.Dataset_ZeroBias, ))
+process.schedule = cms.Schedule( *(process.HLTriggerFirstPath, process.Status_OnCPU, process.Status_OnGPU, process.HLT_Physics_v8, process.HLT_Random_v3, process.HLT_ZeroBias_v7, process.HLTriggerFinalPath, process.HLTAnalyzerEndpath, process.DQMOutput, process.PhysicsCommissioningOutput, process.Dataset_HLTPhysics, process.Dataset_OnlineMonitor, process.Dataset_ZeroBias, ))
 
 
 # source module (EDM inputs)
@@ -5276,11 +5263,9 @@ process.maxEvents = cms.untracked.PSet(
 )
 
 # enable TrigReport, TimeReport and MultiThreading
-process.options = cms.untracked.PSet(
-    wantSummary = cms.untracked.bool( True ),
-    numberOfThreads = cms.untracked.uint32( 4 ),
-    numberOfStreams = cms.untracked.uint32( 0 ),
-)
+process.options.wantSummary = True
+process.options.numberOfThreads = 4
+process.options.numberOfStreams = 0
 
 # override the GlobalTag, connection string and pfnPrefix
 if 'GlobalTag' in process.__dict__:

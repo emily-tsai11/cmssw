@@ -28,17 +28,12 @@ run3_common.toModify(siPixelClusters,
   ClusterThreshold_L1     = 4000
 )
 
-# customize phase2 clusters for bricked pixels
-from Configuration.Eras.Modifier_phase2_brickedPixels_cff import phase2_brickedPixels
-phase2_brickedPixels.toModify(siPixelClusters, 
-                              ClusterMode = cms.string('PixelThresholdClusterizerForBricked')
-)
-
 # Need these until phase2 pixel templates are used
 from Configuration.Eras.Modifier_phase2_tracker_cff import phase2_tracker
 from SimTracker.SiPhase2Digitizer.phase2TrackerDigitizer_cfi import PixelDigitizerAlgorithmCommon
 phase2_tracker.toModify(siPixelClusters, # FIXME
   src = 'simSiPixelDigis:Pixel',
+  DropDuplicates = False, # do not drop duplicates for phase-2 until the digitizer can handle them consistently
   MissCalibrate = False,
   Phase2Calibration = True,
   Phase2ReadoutMode = PixelDigitizerAlgorithmCommon.Phase2ReadoutMode.value(), # Flag to decide Readout Mode : linear TDR (-1), dual slope with slope parameters (+1,+2,+3,+4 ...) with threshold subtraction

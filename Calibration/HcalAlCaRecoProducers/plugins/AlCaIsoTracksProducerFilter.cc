@@ -28,25 +28,26 @@
 // class declaration
 //
 
-namespace AlCaIsoTracksProdFilter {
+namespace alCaIsoTracksProducerFilter {
   struct Counters {
     Counters() : nAll_(0), nGood_(0) {}
     mutable std::atomic<unsigned int> nAll_, nGood_;
   };
-}  // namespace AlCaIsoTracksProdFilter
+}  // namespace alCaIsoTracksProducerFilter
 
-class AlCaIsoTracksProducerFilter : public edm::stream::EDFilter<edm::GlobalCache<AlCaIsoTracksProdFilter::Counters> > {
+class AlCaIsoTracksProducerFilter
+    : public edm::stream::EDFilter<edm::GlobalCache<alCaIsoTracksProducerFilter::Counters> > {
 public:
-  explicit AlCaIsoTracksProducerFilter(edm::ParameterSet const&, const AlCaIsoTracksProdFilter::Counters* count);
+  explicit AlCaIsoTracksProducerFilter(edm::ParameterSet const&, const alCaIsoTracksProducerFilter::Counters* count);
   ~AlCaIsoTracksProducerFilter() override;
 
-  static std::unique_ptr<AlCaIsoTracksProdFilter::Counters> initializeGlobalCache(edm::ParameterSet const& iConfig) {
-    return std::make_unique<AlCaIsoTracksProdFilter::Counters>();
+  static std::unique_ptr<alCaIsoTracksProducerFilter::Counters> initializeGlobalCache(edm::ParameterSet const& iConfig) {
+    return std::make_unique<alCaIsoTracksProducerFilter::Counters>();
   }
 
   bool filter(edm::Event&, edm::EventSetup const&) override;
   void endStream() override;
-  static void globalEndJob(const AlCaIsoTracksProdFilter::Counters* counters);
+  static void globalEndJob(const alCaIsoTracksProducerFilter::Counters* counters);
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 private:
@@ -63,7 +64,7 @@ private:
 };
 
 AlCaIsoTracksProducerFilter::AlCaIsoTracksProducerFilter(const edm::ParameterSet& iConfig,
-                                                         const AlCaIsoTracksProdFilter::Counters* count)
+                                                         const alCaIsoTracksProducerFilter::Counters* count)
     : nRun_(0),
       nAll_(0),
       nGood_(0),
@@ -127,7 +128,7 @@ void AlCaIsoTracksProducerFilter::endStream() {
   globalCache()->nGood_ += nGood_;
 }
 
-void AlCaIsoTracksProducerFilter::globalEndJob(const AlCaIsoTracksProdFilter::Counters* count) {
+void AlCaIsoTracksProducerFilter::globalEndJob(const alCaIsoTracksProducerFilter::Counters* count) {
   edm::LogVerbatim("HcalIsoTrack") << "Selects " << count->nGood_ << " in " << count->nAll_ << " events " << std::endl;
 }
 

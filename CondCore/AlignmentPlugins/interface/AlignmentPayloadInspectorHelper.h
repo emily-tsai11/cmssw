@@ -15,6 +15,7 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "CondFormats/Alignment/interface/Alignments.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
+#include "DataFormats/Math/interface/Rounding.h"  // for rounding
 
 //#define MMDEBUG // uncomment for debugging at compile time
 #ifdef MMDEBUG
@@ -28,7 +29,19 @@ namespace AlignmentPI {
 
   // size of the phase-I Tracker APE payload (including both SS + DS modules)
   static const unsigned int phase0size = 19876;
-  static const float cmToUm = 10000;
+  static const float cmToUm = 10000.f;
+  static const float tomRad = 1000.f;
+
+  // method to zero all elements whose difference from 2Pi
+  // is less than the tolerance (2*10e-7)
+  inline float returnZeroIfNear2PI(const float phi) {
+    const double tol = 2.e-7;  // default tolerance 1.e-7 doesn't account for possible variations
+    if (cms_rounding::roundIfNear0(std::abs(phi) - 2 * M_PI, tol) == 0.f) {
+      return 0.f;
+    } else {
+      return phi;
+    }
+  }
 
   enum coordinate {
     t_x = 1,
@@ -864,6 +877,11 @@ namespace AlignmentPI {
                                                   const std::map<AlignmentPI::coordinate, float>& GPR)
   /*--------------------------------------------------------------------*/
   {
+    // zero in the n. modules per partition...
+    for (const auto& p : PARTITIONS) {
+      nmodules[p] = 0.;
+    }
+
     for (const auto& ali : input) {
       if (DetId(ali.rawId()).det() != DetId::Tracker) {
         edm::LogWarning("TkAlBarycenters::computeBarycenters")
@@ -945,15 +963,17 @@ namespace AlignmentPI {
     }
 
     for (const auto& p : PARTITIONS) {
+      // take the arithmetic mean
       Xbarycenters[p] /= nmodules[p];
       Ybarycenters[p] /= nmodules[p];
       Zbarycenters[p] /= nmodules[p];
 
+      // add the Tracker Global Position Record
       Xbarycenters[p] += GPR.at(AlignmentPI::t_x);
       Ybarycenters[p] += GPR.at(AlignmentPI::t_y);
       Zbarycenters[p] += GPR.at(AlignmentPI::t_z);
 
-      COUT << p << "|"
+      COUT << "Partition: " << p << " n. modules: " << nmodules[p] << "|"
            << " X: " << std::right << std::setw(12) << Xbarycenters[p] << " Y: " << std::right << std::setw(12)
            << Ybarycenters[p] << " Z: " << std::right << std::setw(12) << Zbarycenters[p] << std::endl;
     }

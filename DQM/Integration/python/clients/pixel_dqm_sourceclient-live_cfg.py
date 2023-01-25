@@ -2,8 +2,12 @@ from __future__ import print_function
 import FWCore.ParameterSet.Config as cms
 
 import sys
-from Configuration.Eras.Era_Run3_cff import Run3
-process = cms.Process("PIXELDQMLIVE", Run3)
+if 'runkey=hi_run' in sys.argv:
+  from Configuration.Eras.Era_Run3_pp_on_PbPb_approxSiStripClusters_cff import Run3_pp_on_PbPb_approxSiStripClusters
+  process = cms.Process("BeamMonitor", Run3_pp_on_PbPb_approxSiStripClusters)
+else:
+  from Configuration.Eras.Era_Run3_cff import Run3
+  process = cms.Process("BeamMonitor", Run3)
 
 live=True
 unitTest = False
@@ -88,7 +92,7 @@ if (live):
 elif(offlineTesting):
     process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
     from Configuration.AlCa.GlobalTag import GlobalTag as gtCustomise
-    process.GlobalTag = gtCustomise(process.GlobalTag, 'auto:run2_data', '')
+    process.GlobalTag = gtCustomise(process.GlobalTag, 'auto:run3_data', '')
 
 #-----------------------
 #  Reconstruction Modules
