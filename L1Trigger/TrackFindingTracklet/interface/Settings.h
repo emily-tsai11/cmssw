@@ -852,7 +852,8 @@ namespace trklet {
     // Offset to the maximum number of steps in each processing step:
     // Set to 0 (default) means standard truncation
     // Set to large value, e.g. 10000, to disable truncation
-    unsigned int maxstepoffset_{0};
+    // unsigned int maxstepoffset_{0};
+    unsigned int maxstepoffset_{1000000000};
     // turn off truncation for displaced tracking (not implemented properly for displaced seeding)
     unsigned int maxstepoffset_extended_{10000};
 

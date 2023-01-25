@@ -3068,6 +3068,12 @@ void L1TrackNtuplePlot(TString type,
   mySmallText(0.45, 0.5, 1, ctxt);
   c.SaveAs(DIR + type + "_eff_pt_H.pdf");
 
+  // EMILY ADDED THIS
+  // write histograms that are divided to get the efficiency
+  h_match_tp_eta->Write();
+  h_tp_eta->Write();
+  // ----------------
+
   h_eff_eta->Draw();
   h_eff_eta->Write();
   c.SaveAs(DIR + type + "_eff_eta.pdf");
