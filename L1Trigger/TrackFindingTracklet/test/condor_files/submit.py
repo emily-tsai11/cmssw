@@ -4,9 +4,10 @@ from itertools import islice
 
 #################### CHANGE THESE ####################
 
-submit_name = 'TTbar_PU200_D88'
+# submit_name = 'TTbar_PU200_D88'
 # submit_name = 'TTbar_noPU_D88'
-# submit_name = 'test'
+# submit_name = 'TRK2026D88PU200MB2-v1'
+submit_name = 'test'
 
 # Number of sample file(s) processed per condor job
 n_file = 1

@@ -230,7 +230,7 @@ void TrackletEventProcessor::event(SLHCEvent& ev,
     // ----------------------------------------------------------------------------------------
     // Now start the tracklet processing
 
-    // VM router
+    // Input router
     InputRouterTimer_.start();
     sector_->executeIR();
     if (settings_->writeMem() && k == settings_->writememsect()) {
@@ -239,6 +239,7 @@ void TrackletEventProcessor::event(SLHCEvent& ev,
     }
     InputRouterTimer_.stop();
 
+    // VM router
     VMRouterTimer_.start();
     sector_->executeVMR();
     if (settings_->writeMem() && k == settings_->writememsect()) {

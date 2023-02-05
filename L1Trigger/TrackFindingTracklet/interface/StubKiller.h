@@ -6,7 +6,7 @@
 #include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
 #include "Geometry/CommonTopologies/interface/PixelGeomDetUnit.h"
 #include "Geometry/CommonTopologies/interface/PixelTopology.h"
-#include "TRandom.h"
+#include "TRandom3.h"
 #include "TMath.h"
 
 using namespace std;

@@ -9,8 +9,9 @@ echo number of events = $2
 
 #################### CHANGE THESE ####################
 
-ROOT_FILE=TTbar_PU200_D88
+# ROOT_FILE=TTbar_PU200_D88
 # ROOT_FILE=TTbar_noPU_D88
+ROOT_FILE=TRK2026D88PU200MB2-v1
 # ROOT_FILE=test
 
 ######################################################
