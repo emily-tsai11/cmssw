@@ -2,17 +2,24 @@ import os
 import sys
 from itertools import islice
 
+
 #################### CHANGE THESE ####################
 
 # submit_name = 'TTbar_PU200_D88'
 # submit_name = 'TTbar_noPU_D88'
-# submit_name = 'TRK2026D88PU200MB2-v1'
+# submit_name = 'TRK2026D88PU200MB2-v5'
 submit_name = 'test'
 
 # Number of sample file(s) processed per condor job
 n_file = 1
 
 ######################################################
+
+
+# Don't run the script if previous jobs files still exist
+if(os.path.exists('./job1/')): # always start counting at 1
+    print('clean the directory before running! exiting...')
+    exit()
 
 # Name of the txt file used to help locate samples
 file_list = 'lists/' + submit_name + '.list'
@@ -38,8 +45,8 @@ with open(file_list, 'r') as f:
         condor += 'output\t\t\t\t= job' + str(job_counter) + '/' + submit_name + '.out\n'
         condor += 'log\t\t\t\t\t\t= job' + str(job_counter) + '/' + submit_name + '.log\n'
         condor += 'error\t\t\t\t\t= job' + str(job_counter) + '/' + submit_name + '.err\n'
-        condor += '+JobFlavour\t\t= "microcentury"\n' # 1 hour
-        # condor += '+JobFlavour\t\t= "longlunch"\n'    # 2 hours
+        # condor += '+JobFlavour\t\t= "microcentury"\n' # 1 hour
+        condor += '+JobFlavour\t\t= "longlunch"\n'    # 2 hours
         # condor += '+JobFlavour\t\t= "workday"\n'      # 8 hours
         # condor += '+JobFlavour\t\t= "tomorrow"\n'     # 1 day
         condor += 'queue\n'
@@ -69,7 +76,7 @@ with open(file_list, 'r') as f:
         os.system('chmod 755 ' + f2_name) # Make .sh file executable
 
         # Submit the job using condor_submit command
-        os.system('condor_submit ' + f1_name + ' executable=' + f2_name)
+        # os.system('condor_submit ' + f1_name + ' executable=' + f2_name)
 
         # Increment the nth job
         job_counter += 1

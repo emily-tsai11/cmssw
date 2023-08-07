@@ -15,6 +15,11 @@ process = cms.Process("L1TrackNtuple")
 #GEOMETRY = "D76"  
 GEOMETRY = "D88"
 
+# To run non-ideal samples from Noah Zipper's slides
+# https://indico.cern.ch/event/1170133/contributions/4918614/attachments/2462084/4221400/L1T_DQM_Update_6_14_22.pdf (slide 2)
+# https://cmsweb.cern.ch/das/request?view=list&limit=50&instance=prod/global&input=dataset=/*/*TRK2026D88PU200MB2*/GEN-SIM-DIGI-RAW
+oldMC = True
+
 # Set L1 tracking algorithm:
 # 'HYBRID' (baseline, 4par fit) or 'HYBRID_DISPLACED' (extended, 5par fit).
 # 'HYBRID_NEWKF' (baseline, 4par fit, with bit-accurate KF emulation),
@@ -67,8 +72,8 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
-# process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+# process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 #--- To use MCsamples scripts, defining functions get*data*() for easy MC access,
 #--- follow instructions in https://github.com/cms-L1TK/MCsamples
@@ -106,20 +111,20 @@ else:
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*inputMC))
 
-if GEOMETRY == "D76":
+if GEOMETRY == "D76" or oldMC:
   # If reading old MC dataset, drop incompatible EDProducts.
   process.source.dropDescendantsOfDroppedBranches = cms.untracked.bool(False)
   process.source.inputCommands = cms.untracked.vstring()
-  process.source.inputCommands.append('keep  *_*_*Level1TTTracks*_*')
-  process.source.inputCommands.append('keep  *_*_*StubAccepted*_*')
-  process.source.inputCommands.append('keep  *_*_*ClusterAccepted*_*')
-  process.source.inputCommands.append('keep  *_*_*MergedTrackTruth*_*')
-  process.source.inputCommands.append('keep  *_genParticles_*_*')
+  process.source.inputCommands.append('keep *_*_*Level1TTTracks*_*')
+  process.source.inputCommands.append('keep *_*_*StubAccepted*_*')
+  process.source.inputCommands.append('keep *_*_*ClusterAccepted*_*')
+  process.source.inputCommands.append('keep *_*_*MergedTrackTruth*_*')
+  process.source.inputCommands.append('keep *_genParticles_*_*')
 
 # Use skipEvents to select particular single events for test vectors
 #process.source.skipEvents = cms.untracked.uint32(11)
 
-# process.TFileService = cms.Service("TFileService", fileName = cms.string('TTbar_PU200_'+GEOMETRY+'.root'), closeFileFast = cms.untracked.bool(True))
+# process.TFileService = cms.Service("TFileService", fileName = cms.string('TTbar_PU200_' + GEOMETRY + '.root'), closeFileFast = cms.untracked.bool(True))
 process.TFileService = cms.Service("TFileService", fileName = cms.string(options.outputFile), closeFileFast = cms.untracked.bool(True))
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
 

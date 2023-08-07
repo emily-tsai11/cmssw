@@ -2,7 +2,8 @@
 ########################################################################
 # Create L1 track histograms & print summary of tracking performance,  #
 # by running ROOT macros L1TrackNtuplePlot.C & L1TrackQualityPlot.C    #
-# on the .root file from L1TrackNtupleMaker_cfg.py .                   # #                                                                      #
+# on the .root file from L1TrackNtupleMaker_cfg.py.                    #
+#                                                                      #
 #                                                                      #
 # To use:                                                              #
 #   makeHists.csh  rootFileName                                        #

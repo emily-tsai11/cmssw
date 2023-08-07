@@ -9,56 +9,61 @@
 #include "TRandom3.h"
 #include "TMath.h"
 
+
 using namespace std;
+
 
 class StubKiller {
 
 public:
-  
+
   StubKiller();
   ~StubKiller() {}
 
-  void initialise( unsigned int killScenario, const TrackerTopology* trackerTopology, const TrackerGeometry* trackerGeometry );
+  void initialise(unsigned int killScenario, const TrackerTopology* trackerTopology, const TrackerGeometry* trackerGeometry);
 
   bool killStub(
-  		const TTStub<Ref_Phase2TrackerDigi_>* stub,
-		const vector<int> layersToKill,
-		const double minPhiToKill,
-		const double maxPhiToKill,
-		const double minZToKill,
-		const double maxZToKill,
-		const double minRToKill,
-		const double maxRToKill,
-		const double fractionOfStubsToKillInLayers,
-		const double fractionOfStubsToKillEverywhere
-  	);
+    const TTStub<Ref_Phase2TrackerDigi_>* stub,
+    const vector<int> layersToKill,
+    const double minPhiToKill,
+    const double maxPhiToKill,
+    const double minZToKill,
+    const double maxZToKill,
+    const double minRToKill,
+    const double maxRToKill,
+    const double fractionOfStubsToKillInLayers,
+    const double fractionOfStubsToKillEverywhere
+  );
 
-  bool killStub( const TTStub<Ref_Phase2TrackerDigi_>* stub );
+  bool killStub(const TTStub<Ref_Phase2TrackerDigi_>* stub);
 
-  bool killStubInDeadModule( const TTStub<Ref_Phase2TrackerDigi_>* stub );
+  bool killStubInDeadModule(const TTStub<Ref_Phase2TrackerDigi_>* stub);
 
-  map<DetId, float> getListOfDeadModules() { return deadModules_ ;}
+  map<DetId, float> getListOfDeadModules() { return deadModules_; }
+
 
 private:
-	void chooseModulesToKill();
-	void addDeadLayerModulesToDeadModuleList();
 
-	unsigned int killScenario_;
-	const TrackerTopology* trackerTopology_;
-	const TrackerGeometry* trackerGeometry_;
+  void chooseModulesToKill();
+  void addDeadLayerModulesToDeadModuleList();
 
-	vector<int> layersToKill_;
-	double minPhiToKill_;
-	double maxPhiToKill_;
-	double minZToKill_;
-	double maxZToKill_;
-	double minRToKill_;
-	double maxRToKill_;
-	double fractionOfStubsToKillInLayers_;
-	double fractionOfStubsToKillEverywhere_;
-	double fractionOfModulesToKillEverywhere_;
+  unsigned int killScenario_;
+  const TrackerTopology* trackerTopology_;
+  const TrackerGeometry* trackerGeometry_;
 
-	map<DetId, float> deadModules_;
+  vector<int> layersToKill_;
+  double minPhiToKill_;
+  double maxPhiToKill_;
+  double minZToKill_;
+  double maxZToKill_;
+  double minRToKill_;
+  double maxRToKill_;
+  double fractionOfStubsToKillInLayers_;
+  double fractionOfStubsToKillEverywhere_;
+  double fractionOfModulesToKillEverywhere_;
+
+  map<DetId, float> deadModules_;
 };
+
 
 #endif

@@ -409,7 +409,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   // Check killing stubs for detector degradation studies
 
   int failType = 0;
-  if (failScenario_ < 0 || failScenario_ > 8) {
+  if (failScenario_ < 0 || failScenario_ > 9) {
     std::cout << "Invalid fail scenario! Ignoring input" << std::endl;
   }
   else {

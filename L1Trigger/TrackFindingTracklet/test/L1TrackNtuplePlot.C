@@ -2865,18 +2865,6 @@ void L1TrackNtuplePlot(TString type,
     h_match_trk_chi2_dof_F_H->Write();
   }
 
-  // -------------------------------------------------------------------------------------------
-  // track plots -- EMILY ADDED
-  // -------------------------------------------------------------------------------------------
-
-  h_match_tp_eta->Sumw2();
-  h_match_tp_eta->SetName("match_tp_eta");
-  h_match_tp_eta->Write();
-
-  h_tp_eta->Sumw2();
-  h_tp_eta->SetName("tp_eta");
-  h_tp_eta->Write();
-
   // ----------------------------------------------------------------------------------------------------------------
   // efficiency plots
   // ----------------------------------------------------------------------------------------------------------------
@@ -2930,8 +2918,8 @@ void L1TrackNtuplePlot(TString type,
   h_eff_pt_H->GetYaxis()->SetTitle("Efficiency");
   h_eff_pt_H->Divide(h_match_tp_pt_H, h_tp_pt_H, 1.0, 1.0, "B");
 
-  // h_match_tp_eta->Sumw2();
-  // h_tp_eta->Sumw2();
+  h_match_tp_eta->Sumw2();
+  h_tp_eta->Sumw2();
   TH1F* h_eff_eta = (TH1F*)h_match_tp_eta->Clone();
   h_eff_eta->SetName("eff_eta");
   h_eff_eta->GetYaxis()->SetTitle("Efficiency");

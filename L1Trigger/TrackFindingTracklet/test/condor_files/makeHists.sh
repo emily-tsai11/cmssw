@@ -7,16 +7,18 @@ fi
 echo fail scenario = $1
 echo number of events = $2
 
+
 #################### CHANGE THESE ####################
 
 # ROOT_FILE=TTbar_PU200_D88
 # ROOT_FILE=TTbar_noPU_D88
-ROOT_FILE=TRK2026D88PU200MB2-v1
+ROOT_FILE=TRK2026D88PU200MB2-v5
 # ROOT_FILE=test
 
 ######################################################
 
-NEW_DIR=f$1_e$2
+
+NEW_DIR=f$1e$2
 
 # consolidate root files
 hadd $ROOT_FILE.root job*/$ROOT_FILE.root
