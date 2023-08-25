@@ -32,7 +32,7 @@ namespace trklet {
     //The input stub memories
     DTCLinkMemory* dtcstubs_;
 
-    //The all stub memories - the ints are layerdisk and phiregion
+    //The all stub memories - the ints are layer/disk and phiregion
     std::vector<std::pair<std::pair<unsigned int, unsigned int>, InputLinkMemory*> > irstubs_;
   };
 };  // namespace trklet
