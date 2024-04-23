@@ -1,4 +1,3 @@
-# from TTnoPU_cfg import *
 from TTPU200_cfg import *
 
 def addMTDTiming(process):
@@ -66,5 +65,5 @@ def addMTDTiming(process):
     return process
 
 addMTDTiming(process)
-process.maxEvents.input = 30
+# process.maxEvents.input = 30
 # open("debug_dump.py", "w").write(process.dumpPython())
