@@ -65,5 +65,5 @@ def addMTDTiming(process):
     return process
 
 addMTDTiming(process)
-process.maxEvents.input = 1
+# process.maxEvents.input = 30
 # open("debug_dump.py", "w").write(process.dumpPython())
