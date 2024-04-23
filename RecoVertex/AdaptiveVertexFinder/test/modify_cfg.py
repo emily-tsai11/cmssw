@@ -1,5 +1,5 @@
-from TTnoPU_cfg import *
-# from TTPU200_cfg import *
+# from TTnoPU_cfg import *
+from TTPU200_cfg import *
 
 def addMTDTiming(process):
     process.inclusiveCandidateVertexFinder.producer = cms.string("b-tagging")
@@ -56,14 +56,15 @@ def addMTDTiming(process):
     )
 
     process.MINIAODSIMoutput.outputCommands.extend((
-        'keep *_inclusiveVertexFinder_*_*',
-        'keep *_inclusiveVertexFinderMTDTiming_*_*',
         'keep *_tofPID_*_*',
-        'keep *_mtdTrackQualityMVA_*_*'
+        'keep *_mtdTrackQualityMVA_*_*',
+        'keep *_offlinePrimaryVertices_*_*',
+        'keep *_inclusiveVertexFinder_*_*',
+        'keep *_inclusiveVertexFinderMTDTiming_*_*'
     ))
 
     return process
 
 addMTDTiming(process)
-# process.maxEvents.input = 1
+# process.maxEvents.input = 10
 # open("debug_dump.py", "w").write(process.dumpPython())
