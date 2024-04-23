@@ -8,8 +8,8 @@
 7. Copy the second cmsDriver.py command and make sure to:
    1. Change input and output file names (input should be the MiniAOD file you're re-running)
    2. Correct the number of events
-   3. Add --dump_python to the end
-   4. Change the process name (--processName=NAME)
+   3. Add `--dump_python` to the end
+   4. Change the process name (`--processName=NAME`)
 8. Do cmsRun on the generated file to re-run the MiniAOD
 
 ### Currently used cmsDriver.py commands
