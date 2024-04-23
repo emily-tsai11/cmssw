@@ -37,7 +37,7 @@
 
 #include <type_traits>
 
-//#define VTXDEBUG 1
+// #define VTXDEBUG 1
 template <class InputContainer, class VTX>
 class TemplatedInclusiveVertexFinder : public edm::stream::EDProducer<> {
 public:
@@ -58,6 +58,12 @@ public:
     } else {
       pdesc.add<edm::InputTag>("tracks", edm::InputTag("generalTracks"));
     }
+    pdesc.add<std::string>("producer", std::string("producer"));
+    pdesc.add<bool>("useMTDTiming", false);
+    pdesc.add<edm::InputTag>("timeValueMap", edm::InputTag("tofPID:t0"));
+    pdesc.add<edm::InputTag>("timeErrorMap", edm::InputTag("tofPID:sigmat0"));
+    pdesc.add<edm::InputTag>("timeQualityMap", edm::InputTag("mtdTrackQualityMVA:mtdQualMVA"));
+    pdesc.add<double>("timeQualityThreshold", 0.5);
 
     pdesc.add<double>("maximumLongitudinalImpactParameter", 0.3);
     pdesc.add<double>("maximumTimeSignificance", 3.0);
@@ -112,10 +118,18 @@ private:
   edm::EDGetTokenT<reco::VertexCollection> token_primaryVertex;
   edm::EDGetTokenT<InputContainer> token_tracks;
   edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> token_trackBuilder;
+
+  edm::EDGetTokenT<edm::ValueMap<float>> token_timeValueMap;
+  edm::EDGetTokenT<edm::ValueMap<float>> token_timeErrorMap;
+  edm::EDGetTokenT<edm::ValueMap<float>> token_timeQualityMap;
+
   unsigned int minHits;
   unsigned int maxNTracks;
   double maxLIP;
   double maxTimeSig;
+  std::string producer;
+  bool useMTDTiming;
+  double timeQualityThreshold;
   double minPt;
   double vertexMinAngleCosine;
   double vertexMinDLen2DSig;
@@ -134,6 +148,9 @@ TemplatedInclusiveVertexFinder<InputContainer, VTX>::TemplatedInclusiveVertexFin
       maxNTracks(params.getParameter<unsigned int>("maxNTracks")),
       maxLIP(params.getParameter<double>("maximumLongitudinalImpactParameter")),
       maxTimeSig(params.getParameter<double>("maximumTimeSignificance")),
+      producer(params.getParameter<std::string>("producer")),
+      useMTDTiming(params.getParameter<bool>("useMTDTiming")),
+      timeQualityThreshold(params.getParameter<double>("timeQualityThreshold")),  //0.5
       minPt(params.getParameter<double>("minPt")),                                //0.8
       vertexMinAngleCosine(params.getParameter<double>("vertexMinAngleCosine")),  //0.98
       vertexMinDLen2DSig(params.getParameter<double>("vertexMinDLen2DSig")),      //2.5
@@ -154,6 +171,10 @@ TemplatedInclusiveVertexFinder<InputContainer, VTX>::TemplatedInclusiveVertexFin
       esConsumes<TransientTrackBuilder, TransientTrackRecord>(edm::ESInputTag("", "TransientTrackBuilder"));
   produces<Product>();
   //produces<reco::VertexCollection>("multi");
+
+  token_timeValueMap = consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeValueMap"));
+  token_timeErrorMap = consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeErrorMap"));
+  token_timeQualityMap = consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeQualityMap"));
 }
 template <class InputContainer, class VTX>
 bool TemplatedInclusiveVertexFinder<InputContainer, VTX>::trackFilter(const reco::Track &track) const {
@@ -167,6 +188,8 @@ bool TemplatedInclusiveVertexFinder<InputContainer, VTX>::trackFilter(const reco
 
 template <class InputContainer, class VTX>
 void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &event, const edm::EventSetup &es) {
+  std::cout << "producer = " << producer << std::endl;
+
   using namespace reco;
 
   VertexDistance3D vdist;
@@ -186,6 +209,18 @@ void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &ev
 
   edm::Handle<InputContainer> tracks;
   event.getByToken(token_tracks, tracks);
+
+  edm::Handle<edm::ValueMap<float>> edm_timeValueMap;
+  event.getByToken(token_timeValueMap, edm_timeValueMap);
+  const edm::ValueMap<float>& timeValueMap = *(edm_timeValueMap.product());
+
+  edm::Handle<edm::ValueMap<float>> edm_timeErrorMap;
+  event.getByToken(token_timeErrorMap, edm_timeErrorMap);
+  const edm::ValueMap<float>& timeErrorMap = *(edm_timeErrorMap.product());
+
+  edm::Handle<edm::ValueMap<float>> edm_timeQualityMap;
+  event.getByToken(token_timeQualityMap, edm_timeQualityMap);
+  const edm::ValueMap<float>& timeQualityMap = *(edm_timeQualityMap.product());
 
   edm::ESHandle<TransientTrackBuilder> trackBuilder = es.getHandle(token_trackBuilder);
 
@@ -212,6 +247,19 @@ void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &ev
         if (dtSig > maxTimeSig)
           continue;
       }
+      // if (producer=="default" || producer=="timing") {
+      //   if (useMTDTiming) {
+      //     std::cout << "Using MTD timing" << std::endl;
+      //     std::cout << "Product ID = " << tt.trackBaseRef().id() << std::endl;
+      //     if (timeValueMap.contains(tt.trackBaseRef().id())) {
+      //       std::cout << "The time is " << timeValueMap[tt.trackBaseRef()] << "+-" << timeErrorMap[tt.trackBaseRef()] << std::endl;
+      //     } else {
+      //       std::cout << "Not in time value map." << std::endl;
+      //     }
+      //   } else {
+      //     std::cout << "Not using MTD timing" << std::endl;
+      //   }
+      // }
       tt.setBeamSpot(*beamSpot);
       tts.push_back(tt);
     }
@@ -267,9 +315,10 @@ void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &ev
         std::cout << " dlen: " << dlen.value() << " error: " << dlen.error() << " signif: " << dlen.significance();
         std::cout << " dlen2: " << dlen2.value() << " error2: " << dlen2.error()
                   << " signif2: " << dlen2.significance();
-        std::cout << " pos: " << vv.position() << " error: " << vv.xError() << " " << vv.yError() << " " << vv.zError()
-                  << std::endl;
-        std::cout << " time: " << vv.time() << " error: " << vv.tError() << std::endl;
+        std::cout << " pos: " << vv.position() << std::endl;
+        // std::cout << " pos: " << vv.position() << " error: " << vv.xError() << " " << vv.yError() << " " << vv.zError()
+        //           << std::endl;
+        // std::cout << " time: " << vv.time() << " error: " << vv.tError() << std::endl;
 #endif
         GlobalVector dir;
         std::vector<reco::TransientTrack> ts = v->originalTracks();
