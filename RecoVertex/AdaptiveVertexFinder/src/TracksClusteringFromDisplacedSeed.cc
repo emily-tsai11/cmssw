@@ -132,10 +132,6 @@ std::vector<TracksClusteringFromDisplacedSeed::Cluster> TracksClusteringFromDisp
     }
   }
 
-  // if (useMTDTiming) {
-  //        std::cout << "with timing: " << seeds.size() << " seeds" << std::endl;
-  // } else std::cout << "no timing  : " << seeds.size() << " seeds" << std::endl;
-
   std::vector<Cluster> clusters;
   int i = 0;
   for (std::vector<TransientTrack>::const_iterator s = seeds.begin(); s != seeds.end(); ++s, ++i) {

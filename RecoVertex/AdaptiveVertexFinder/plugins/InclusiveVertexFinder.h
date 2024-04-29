@@ -273,10 +273,6 @@ void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &ev
 
     nClusters = clusters.size();
 
-    // if (useMTDTiming) {
-    //        std::cout << "with timing: " << clusters.size() << " clusters" << std::endl;
-    // } else std::cout << "no timing  : " << clusters.size() << " clusters" << std::endl;
-
     for (std::vector<TracksClusteringFromDisplacedSeed::Cluster>::iterator cluster = clusters.begin();
          cluster != clusters.end();
          ++cluster, ++i) {
