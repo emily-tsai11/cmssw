@@ -58,12 +58,12 @@ public:
     } else {
       pdesc.add<edm::InputTag>("tracks", edm::InputTag("generalTracks"));
     }
-    pdesc.add<std::string>("producer", std::string("producer"));
     pdesc.add<bool>("useMTDTiming", false);
     pdesc.add<edm::InputTag>("timeValueMap", edm::InputTag("tofPID:t0"));
     pdesc.add<edm::InputTag>("timeErrorMap", edm::InputTag("tofPID:sigmat0"));
     pdesc.add<edm::InputTag>("timeQualityMap", edm::InputTag("mtdTrackQualityMVA:mtdQualMVA"));
     pdesc.add<double>("timeQualityThreshold", 0.5);
+    pdesc.add<double>("maxTimeRange", 0.4);
 
     pdesc.add<double>("maximumLongitudinalImpactParameter", 0.3);
     pdesc.add<double>("maximumTimeSignificance", 3.0);
@@ -127,9 +127,9 @@ private:
   unsigned int maxNTracks;
   double maxLIP;
   double maxTimeSig;
-  std::string producer;
   bool useMTDTiming;
   double timeQualityThreshold;
+  double maxTimeRange;
   double minPt;
   double vertexMinAngleCosine;
   double vertexMinDLen2DSig;
@@ -148,9 +148,9 @@ TemplatedInclusiveVertexFinder<InputContainer, VTX>::TemplatedInclusiveVertexFin
       maxNTracks(params.getParameter<unsigned int>("maxNTracks")),
       maxLIP(params.getParameter<double>("maximumLongitudinalImpactParameter")),
       maxTimeSig(params.getParameter<double>("maximumTimeSignificance")),
-      producer(params.getParameter<std::string>("producer")),
       useMTDTiming(params.getParameter<bool>("useMTDTiming")),
       timeQualityThreshold(params.getParameter<double>("timeQualityThreshold")),  //0.5
+      maxTimeRange(params.getParameter<double>("maxTimeRange")),                  //0.4
       minPt(params.getParameter<double>("minPt")),                                //0.8
       vertexMinAngleCosine(params.getParameter<double>("vertexMinAngleCosine")),  //0.98
       vertexMinDLen2DSig(params.getParameter<double>("vertexMinDLen2DSig")),      //2.5
@@ -169,6 +169,7 @@ TemplatedInclusiveVertexFinder<InputContainer, VTX>::TemplatedInclusiveVertexFin
   token_tracks = consumes<InputContainer>(params.getParameter<edm::InputTag>("tracks"));
   token_trackBuilder =
       esConsumes<TransientTrackBuilder, TransientTrackRecord>(edm::ESInputTag("", "TransientTrackBuilder"));
+  produces<unsigned int>("nClusters");
   produces<Product>();
   //produces<reco::VertexCollection>("multi");
 
@@ -188,8 +189,6 @@ bool TemplatedInclusiveVertexFinder<InputContainer, VTX>::trackFilter(const reco
 
 template <class InputContainer, class VTX>
 void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &event, const edm::EventSetup &es) {
-  std::cout << "producer = " << producer << std::endl;
-
   using namespace reco;
 
   VertexDistance3D vdist;
@@ -225,6 +224,7 @@ void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &ev
   edm::ESHandle<TransientTrackBuilder> trackBuilder = es.getHandle(token_trackBuilder);
 
   auto recoVertices = std::make_unique<Product>();
+  unsigned nClusters = 0;
   if (!primaryVertices->empty()) {
     const reco::Vertex &pv = (*primaryVertices)[0];
     GlobalPoint ppv(pv.position().x(), pv.position().y(), pv.position().z());
@@ -247,23 +247,11 @@ void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &ev
         if (dtSig > maxTimeSig)
           continue;
       }
-      // if (producer=="default" || producer=="timing") {
-      //   if (useMTDTiming) {
-      //     std::cout << "Using MTD timing" << std::endl;
-      //     std::cout << "Product ID = " << tt.trackBaseRef().id() << std::endl;
-      //     if (timeValueMap.contains(tt.trackBaseRef().id())) {
-      //       std::cout << "The time is " << timeValueMap[tt.trackBaseRef()] << "+-" << timeErrorMap[tt.trackBaseRef()] << std::endl;
-      //     } else {
-      //       std::cout << "Not in time value map." << std::endl;
-      //     }
-      //   } else {
-      //     std::cout << "Not using MTD timing" << std::endl;
-      //   }
-      // }
       tt.setBeamSpot(*beamSpot);
       tts.push_back(tt);
     }
-    std::vector<TracksClusteringFromDisplacedSeed::Cluster> clusters = clusterizer->clusters(pv, tts);
+    std::vector<TracksClusteringFromDisplacedSeed::Cluster> clusters = clusterizer->clusters(pv, tts,
+        useMTDTiming, timeValueMap, timeErrorMap, timeQualityMap, timeQualityThreshold, maxTimeRange);
 
     //Create BS object from PV to feed in the AVR
     BeamSpot::CovarianceMatrix cov;
@@ -282,6 +270,8 @@ void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &ev
 
     std::cout << "CLUSTERS " << clusters.size() << std::endl;
 #endif
+
+    nClusters = clusters.size();
 
     for (std::vector<TracksClusteringFromDisplacedSeed::Cluster>::iterator cluster = clusters.begin();
          cluster != clusters.end();
@@ -350,6 +340,7 @@ void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &ev
 #endif
   }
 
+  event.put(std::make_unique<unsigned int>(nClusters), "nClusters");
   event.put(std::move(recoVertices));
 }
 #endif

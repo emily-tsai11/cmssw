@@ -30,13 +30,20 @@ public:
   };
   TracksClusteringFromDisplacedSeed(const edm::ParameterSet &params);
 
-  std::vector<Cluster> clusters(const reco::Vertex &pv, const std::vector<reco::TransientTrack> &selectedTracks);
+  // std::vector<Cluster> clusters(const reco::Vertex &pv, const std::vector<reco::TransientTrack> &selectedTracks);
+  std::vector<Cluster> clusters(const reco::Vertex &pv, const std::vector<reco::TransientTrack> &selectedTracks,
+                                bool useMTDTiming, const edm::ValueMap<float> &timeValueMap,
+                                const edm::ValueMap<float> &timeErrorMap, const edm::ValueMap<float> &timeQualityMap,
+                                float timeQualityThreshold, double maxTimeRange);
 
 private:
   bool trackFilter(const reco::TrackRef &track) const;
-  std::pair<std::vector<reco::TransientTrack>, GlobalPoint> nearTracks(const reco::TransientTrack &seed,
-                                                                       const std::vector<reco::TransientTrack> &tracks,
-                                                                       const reco::Vertex &primaryVertex) const;
+  std::pair<std::vector<reco::TransientTrack>, GlobalPoint> nearTracks(
+                                const reco::TransientTrack &seed, const std::vector<reco::TransientTrack> &tracks,
+                                const reco::Vertex &primaryVertex, bool useMTDTiming, const edm::ValueMap<float> &timeValueMap,
+                                const edm::ValueMap<float> &timeErrorMap, const edm::ValueMap<float> &timeQualityMap,
+                                float timeQualityThreshold, double maxTimeRange) const;
+  
 
   //	unsigned int				maxNTracks;
   double max3DIPSignificance;
