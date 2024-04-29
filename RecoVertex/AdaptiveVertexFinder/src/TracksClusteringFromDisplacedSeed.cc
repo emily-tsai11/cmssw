@@ -17,9 +17,10 @@ TracksClusteringFromDisplacedSeed::TracksClusteringFromDisplacedSeed(const edm::
 {}
 
 std::pair<std::vector<reco::TransientTrack>, GlobalPoint> TracksClusteringFromDisplacedSeed::nearTracks(
-    const reco::TransientTrack &seed,
-    const std::vector<reco::TransientTrack> &tracks,
-    const reco::Vertex &primaryVertex) const {
+    const reco::TransientTrack &seed, const std::vector<reco::TransientTrack> &tracks, const reco::Vertex &primaryVertex,
+    bool useMTDTiming, const edm::ValueMap<float> &timeValueMap, const edm::ValueMap<float> &timeErrorMap,
+    const edm::ValueMap<float> &timeQualityMap, float timeQualityThreshold, double maxTimeRange) const {
+
   VertexDistance3D distanceComputer;
   GlobalPoint pv(primaryVertex.position().x(), primaryVertex.position().y(), primaryVertex.position().z());
   std::vector<reco::TransientTrack> result;
@@ -31,6 +32,14 @@ std::pair<std::vector<reco::TransientTrack>, GlobalPoint> TracksClusteringFromDi
   for (std::vector<reco::TransientTrack>::const_iterator tt = tracks.begin(); tt != tracks.end(); ++tt) {
     if (*tt == seed)
       continue;
+    if (useMTDTiming) {
+      if (!timeValueMap.contains(tt->trackBaseRef().id())) continue;
+      if (timeErrorMap[tt->trackBaseRef()] == -1.0) continue;
+      float seedTime = timeValueMap[seed.trackBaseRef()];
+      float trackTime = timeValueMap[tt->trackBaseRef()];
+      float timeDiff = std::abs(seedTime - trackTime);
+      if (timeDiff > maxTimeRange / 2.0) continue; // Actual cut
+    }
 
     if (dist.calculate(tt->impactPointState(), seed.impactPointState())) {
       GlobalPoint ttPoint = dist.points().first;
@@ -98,13 +107,21 @@ std::pair<std::vector<reco::TransientTrack>, GlobalPoint> TracksClusteringFromDi
 }
 
 std::vector<TracksClusteringFromDisplacedSeed::Cluster> TracksClusteringFromDisplacedSeed::clusters(
-    const reco::Vertex &pv, const std::vector<reco::TransientTrack> &selectedTracks) {
+                        const reco::Vertex &pv, const std::vector<reco::TransientTrack> &selectedTracks,
+                        bool useMTDTiming, const edm::ValueMap<float> &timeValueMap,
+                        const edm::ValueMap<float> &timeErrorMap, const edm::ValueMap<float> &timeQualityMap,
+                        float timeQualityThreshold, double maxTimeRange) {
   using namespace reco;
   std::vector<TransientTrack> seeds;
   for (std::vector<TransientTrack>::const_iterator it = selectedTracks.begin(); it != selectedTracks.end(); it++) {
     std::pair<bool, Measurement1D> ip = IPTools::absoluteImpactParameter3D(*it, pv);
     if (ip.first && ip.second.value() >= min3DIPValue && ip.second.significance() >= min3DIPSignificance &&
         ip.second.value() <= max3DIPValue && ip.second.significance() <= max3DIPSignificance) {
+
+      if (useMTDTiming) { // Skip seeds with no MTD timing information
+        if (!timeErrorMap.contains(it->trackBaseRef().id())) continue;
+        if (timeErrorMap.contains(it->trackBaseRef().id()) && timeErrorMap[it->trackBaseRef()] == -1.0) continue;
+      }
 #ifdef VTXDEBUG
       std::cout << "new seed " << it - selectedTracks.begin() << " ref " << it->trackBaseRef().key() << " "
                 << ip.second.value() << " " << ip.second.significance() << " "
@@ -115,13 +132,18 @@ std::vector<TracksClusteringFromDisplacedSeed::Cluster> TracksClusteringFromDisp
     }
   }
 
+  // if (useMTDTiming) {
+  //        std::cout << "with timing: " << seeds.size() << " seeds" << std::endl;
+  // } else std::cout << "no timing  : " << seeds.size() << " seeds" << std::endl;
+
   std::vector<Cluster> clusters;
   int i = 0;
   for (std::vector<TransientTrack>::const_iterator s = seeds.begin(); s != seeds.end(); ++s, ++i) {
 #ifdef VTXDEBUG
     std::cout << "Seed N. " << i << std::endl;
 #endif  // VTXDEBUG
-    std::pair<std::vector<reco::TransientTrack>, GlobalPoint> ntracks = nearTracks(*s, selectedTracks, pv);
+    std::pair<std::vector<reco::TransientTrack>, GlobalPoint> ntracks = nearTracks(*s, selectedTracks, pv,
+        useMTDTiming, timeValueMap, timeErrorMap, timeQualityMap, timeQualityThreshold, maxTimeRange);
     //	        std::cout << ntracks.first.size() << " " << ntracks.first.size()  << std::endl;
     //                if(ntracks.first.size() == 0 || ntracks.first.size() > maxNTracks ) continue;
     ntracks.first.push_back(*s);

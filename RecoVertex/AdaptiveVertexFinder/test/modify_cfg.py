@@ -1,32 +1,35 @@
-from TTnoPU_cfg import *
+from TTToHadronic_noPU_cfg import *
 
-def addMTDTiming(process):
-    process.inclusiveCandidateVertexFinder.producer = cms.string("b-tagging")
-    process.inclusiveCandidateVertexFinderCvsL.producer = cms.string("c-tagging")
+def addTrackMCMatching(process):
+    process.trackMCMatch = process.prunedTrackMCMatch.clone(
+        associator = cms.string("quickTrackAssociatorByHits"),
+        trackingParticles = cms.InputTag("mix", "MergedTrackTruth")
+    )
+    process.trackMCMatchTask = cms.Task(
+        process.tpClusterProducer,
+        process.trackMCMatch,
+        process.quickTrackAssociatorByHits
+    )
+    process.recosim = cms.Task(
+        process.muonSimClassificationByHitsTask,
+        process.trackPrunedMCMatchTask,
+        process.trackMCMatchTask
+    )
+    return process
 
-    process.inclusiveVertexFinder.producer = cms.string("default")
-    process.inclusiveVertexFinder.useMTDTiming = cms.bool(False)
-    process.inclusiveVertexFinder.timeValueMap = cms.InputTag("tofPID:t0")
-    process.inclusiveVertexFinder.timeErrorMap = cms.InputTag("tofPID:sigmat0")
-    process.inclusiveVertexFinder.timeQualityMap = cms.InputTag("mtdTrackQualityMVA:mtdQualMVA")
-    process.inclusiveVertexFinder.timeQualityThreshold = cms.double(0.5)
-
+def addMTDTimingtoIVF(process):
     process.inclusiveVertexFinderMTDTiming = process.inclusiveVertexFinder.clone(
-        producer = cms.string("timing"),
         useMTDTiming = cms.bool(True)
     )
-
     process.vertexMergerMTDTiming = process.vertexMerger.clone(
         secondaryVertices = cms.InputTag("inclusiveVertexFinderMTDTiming")
     )
-
     process.inclusiveVertexingMTDTimingTask = cms.Task(
         process.inclusiveSecondaryVertices,
         process.inclusiveVertexFinderMTDTiming,
         process.trackVertexArbitrator,
         process.vertexMergerMTDTiming
     )
-
     process.vertexrecoTask = cms.Task(
         process.caloJetsForTrkTask,
         process.generalV0Candidates,
@@ -53,17 +56,62 @@ def addMTDTiming(process):
         process.unsortedOfflinePrimaryVertices4D,
         process.unsortedOfflinePrimaryVertices4DnoPID
     )
-
-    process.MINIAODSIMoutput.outputCommands.extend((
-        'keep *_tofPID_*_*',
-        'keep *_mtdTrackQualityMVA_*_*',
-        'keep *_offlinePrimaryVertices_*_*',
-        'keep *_inclusiveVertexFinder_*_*',
-        'keep *_inclusiveVertexFinderMTDTiming_*_*'
-    ))
-
     return process
 
-addMTDTiming(process)
-# process.maxEvents.input = 30
-# open("debug_dump.py", "w").write(process.dumpPython())
+def dropKeepBranches(process):
+    process.MINIAODSIMoutput.outputCommands.extend((
+        "drop *",
+        "keep SimTracks_g4SimHits__SIM",
+        "keep SimVertexs_g4SimHits__SIM",
+        "keep float_genParticles_t0_HLT",
+        "keep *_mix_MergedTrackTruth_HLT",
+        "keep recoGenJets_ak4GenJets__HLT",
+        "keep recoGenJets_ak4GenJetsNoNu__HLT",
+        "keep recoGenParticles_genParticles__HLT",
+        "keep double_fixedGridRhoFastjetAll__BTV",
+        "keep *_packedPFCandidateToGenAssociation__BTV",
+        "keep *_trackMCMatch_*_BTV",
+        "keep *_pfDeepCSVJetTags_*_BTV",
+        "keep *_slimmedJets_tagInfos_BTV",
+        "keep *_mtdTrackQualityMVA_mtdQualMVA_BTV",
+        "keep *_tofPID_sigmat0_BTV",
+        "keep *_tofPID_t0_BTV",
+        "keep recoJetFlavourInfoMatchingCollection_slimmedGenJetsFlavourInfos__BTV",
+        "keep PileupSummaryInfos_slimmedAddPileupInfo_*_BTV",
+        "keep patElectrons_slimmedElectrons__BTV",
+        "keep patJets_slimmedJets__BTV",
+        "keep patJets_slimmedJetsPuppi__BTV",
+        "keep patMuons_slimmedMuons__BTV",
+        "keep patPackedCandidates_packedPFCandidates__BTV",
+        "keep patPackedGenParticles_packedGenParticles__BTV",
+        "keep recoGenJets_slimmedGenJets__BTV",
+        "keep recoGenParticles_prunedGenParticles__BTV",
+        "keep *_pfImpactParameterTagInfos__BTV",
+        "keep *_pfInclusiveSecondaryVertexFinderTagInfos__BTV",
+        "keep recoTracks_generalTracks__BTV",
+        "keep *_inclusiveVertexFinder_*_BTV",
+        "keep *_inclusiveVertexFinderMTDTiming_*_BTV",
+        "keep recoVertexs_offlinePrimaryVertices__BTV",
+        "keep recoVertexs_offlineSlimmedPrimaryVertices__BTV",
+        "keep recoVertexs_offlineSlimmedPrimaryVerticesWithBS__BTV",
+        "keep recoVertexCompositePtrCandidates_slimmedSecondaryVertices__BTV",
+    ))
+    return process
+
+def setMaxEvents(process, maxEvents):
+    process.maxEvents.input = maxEvents
+    return process
+
+def setOutputFileName(process, fileName):
+    process.MINIAODSIMoutput.fileName = fileName
+    return process
+
+def dumpDebug(process, debug):
+    if debug: open("dumpDebug.py", "w").write(process.dumpPython())
+
+setMaxEvents(process, 10)
+setOutputFileName(process, "TTToHadronic_noPU_slimmed.root")
+addTrackMCMatching(process)
+addMTDTimingtoIVF(process)
+dropKeepBranches(process)
+dumpDebug(process, False)
