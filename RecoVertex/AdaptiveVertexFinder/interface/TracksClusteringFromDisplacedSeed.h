@@ -30,7 +30,6 @@ public:
   };
   TracksClusteringFromDisplacedSeed(const edm::ParameterSet &params);
 
-  // std::vector<Cluster> clusters(const reco::Vertex &pv, const std::vector<reco::TransientTrack> &selectedTracks);
   std::vector<Cluster> clusters(const reco::Vertex &pv, const std::vector<reco::TransientTrack> &selectedTracks,
                                 bool useMTDTiming, const edm::ValueMap<float> &timeValueMap,
                                 const edm::ValueMap<float> &timeErrorMap, const edm::ValueMap<float> &timeQualityMap,
