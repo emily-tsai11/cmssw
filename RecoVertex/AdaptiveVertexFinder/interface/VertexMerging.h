@@ -1,3 +1,7 @@
+#ifndef RecoVertex_AdaptiveVertexFinder_VertexMerging_h
+#define RecoVertex_AdaptiveVertexFinder_VertexMerging_h
+
+
 #include <memory>
 #include <set>
 
@@ -13,6 +17,7 @@
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "RecoVertex/VertexTools/interface/VertexDistance3D.h"
 
+
 class VertexMerging {
 public:
   VertexMerging(const edm::ParameterSet &params);
@@ -25,3 +30,6 @@ private:
   double maxFraction;
   double minSignificance;
 };
+
+
+#endif

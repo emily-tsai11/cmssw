@@ -1,13 +1,14 @@
-#ifndef __RecoVertex_AdaptiveVertexFinder_SVTimeHelpers_h__
-#define __RecoVertex_AdaptiveVertexFinder_SVTimeHelpers_h__
+#ifndef RecoVertex_AdaptiveVertexFinder_SVTimeHelpers_h
+#define RecoVertex_AdaptiveVertexFinder_SVTimeHelpers_h
+
+
+#include "FWCore/Utilities/interface/isFinite.h"
 
 #include "RecoVertex/VertexPrimitives/interface/TransientVertex.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 
-#include "FWCore/Utilities/interface/isFinite.h"
 
 namespace svhelper {
-
   inline void updateVertexTime(TransientVertex& vtx) {
     const auto& trks = vtx.originalTracks();
     double meantime = 0., expv_x2 = 0., normw = 0., timecov = 0.;
@@ -30,6 +31,7 @@ namespace svhelper {
       vtx = TransientVertex(vtx.position(), meantime, err, vtx.originalTracks(), vtx.totalChiSquared());
     }
   }
-}  // namespace svhelper
+} // namespace svhelper
+
 
 #endif
