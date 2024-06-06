@@ -8,12 +8,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
-// #include "FWCore/Framework/interface/stream/EDProducer.h"
-// #include "FWCore/Utilities/interface/EDGetToken.h"
 #include "FWCore/Utilities/interface/isFinite.h"
-// #include "FWCore/ServiceRegistry/interface/Service.h"
-// #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDConsumerBase.h"
 
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
@@ -45,35 +40,34 @@ public:
   std::vector<Cluster> clusters(const edm::Event &event, const reco::Vertex &pv,
                                 const std::vector<reco::TransientTrack> &selectedTracks);
 
-  void setTimeValueMapToken(const edm::EDGetTokenT<edm::ValueMap<float>> tokenTimeValueMap) {
-    token_timeValueMap = tokenTimeValueMap;
+  void setTrackTimeValueMapToken(const edm::EDGetTokenT<edm::ValueMap<float>> tokenTrackTimeValueMap) {
+    token_trackTimeValueMap = tokenTrackTimeValueMap;
   }
 
-  void setTimeErrorMapToken(const edm::EDGetTokenT<edm::ValueMap<float>> tokenTimeErrorMap) {
-    token_timeErrorMap = tokenTimeErrorMap;
+  void setTrackTimeErrorMapToken(const edm::EDGetTokenT<edm::ValueMap<float>> tokenTrackTimeErrorMap) {
+    token_trackTimeErrorMap = tokenTrackTimeErrorMap;
   }
 
-  void setTimeQualityMapToken(const edm::EDGetTokenT<edm::ValueMap<float>> tokenTimeQualityMap) {
-    token_timeQualityMap = tokenTimeQualityMap;
-  }
+  // void setTrackTimeQualityMapToken(const edm::EDGetTokenT<edm::ValueMap<float>> tokenTrackTimeQualityMap) {
+  //   token_trackTimeQualityMap = tokenTrackTimeQualityMap;
+  // }
 
 private:
   bool trackFilter(const reco::TrackRef &track) const;
   std::pair<std::vector<reco::TransientTrack>, GlobalPoint> nearTracks(const reco::TransientTrack &seed,
-                                const std::vector<reco::TransientTrack> &tracks, const reco::Vertex &primaryVertex) const;
+                const std::vector<reco::TransientTrack> &tracks, const reco::Vertex &primaryVertex) const;
 
-  edm::EDGetTokenT<edm::ValueMap<float>> token_timeValueMap;
-  edm::EDGetTokenT<edm::ValueMap<float>> token_timeErrorMap;
-  edm::EDGetTokenT<edm::ValueMap<float>> token_timeQualityMap;
+  edm::EDGetTokenT<edm::ValueMap<float>> token_trackTimeValueMap;
+  edm::EDGetTokenT<edm::ValueMap<float>> token_trackTimeErrorMap;
+  // edm::EDGetTokenT<edm::ValueMap<float>> token_trackTimeQualityMap;
 
-  edm::ValueMap<float> timeValueMap;
-  edm::ValueMap<float> timeErrorMap;
-  edm::ValueMap<float> timeQualityMap;
+  edm::ValueMap<float> trackTimeValueMap;
+  edm::ValueMap<float> trackTimeErrorMap;
+  // edm::ValueMap<float> trackTimeQualityMap;
 
   // unsigned int maxNTracks;
-  bool useMTDTiming;
-  std::string timeReference;
-  double timeQualityThreshold;
+  bool useMTD;
+  // double trackTimeQualityThreshold;
   double max3DIPSignificance;
   double max3DIPValue;
   double min3DIPSignificance;

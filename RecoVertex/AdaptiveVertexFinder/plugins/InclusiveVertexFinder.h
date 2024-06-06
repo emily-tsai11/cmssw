@@ -63,27 +63,21 @@ public:
     } else {
       pdesc.add<edm::InputTag>("tracks", edm::InputTag("generalTracks"));
     }
-    // pdesc.add<bool>("useMTDTiming", false);
-    pdesc.add<std::string>("timeReference", "beamSpot"); // or "primaryVertex"
-    pdesc.add<edm::InputTag>("timeValueMap", edm::InputTag("tofPID:t0"));
-    pdesc.add<edm::InputTag>("timeErrorMap", edm::InputTag("tofPID:sigmat0"));
-    pdesc.add<edm::InputTag>("timeQualityMap", edm::InputTag("mtdTrackQualityMVA:mtdQualMVA"));
-    // pdesc.add<double>("timeQualityThreshold", 0.5);
-    // pdesc.add<bool>("cutTimeRange", false);
-    // pdesc.add<double>("maxTimeRange", 0.4);
-
+    pdesc.add<std::string>("trackTimeReference", "beamSpot"); // or "primaryVertex"
+    pdesc.add<edm::InputTag>("trackTimeBSValueMap", edm::InputTag("trackExtenderWithMTD:generalTrackt0"));
+    pdesc.add<edm::InputTag>("trackTimeBSErrorMap", edm::InputTag("trackExtenderWithMTD:generalTracksigmat0"));
+    // pdesc.add<edm::InputTag>("trackTimeBSQualityMap", edm::InputTag("mtdTrackQualityMVA:mtdQualMVA"));
+    pdesc.add<edm::InputTag>("trackTimePVValueMap", edm::InputTag("trackExtenderWithMTDPV:generalTrackt0"));
+    pdesc.add<edm::InputTag>("trackTimePVErrorMap", edm::InputTag("trackExtenderWithMTDPV:generalTracksigmat0"));
+    // pdesc.add<edm::InputTag>("trackTimePVQualityMap", edm::InputTag("mtdTrackQualityMVA:mtdQualMVA")); // not implemented (yet?)
     pdesc.add<double>("maximumLongitudinalImpactParameter", 0.3);
     pdesc.add<double>("maximumTimeSignificance", 3.0);
     pdesc.add<double>("minPt", 0.8);
     pdesc.add<unsigned int>("maxNTracks", 30);
     // Clusterizer ParameterSet
     edm::ParameterSetDescription clusterizer;
-    clusterizer.add<bool>("useMTDTiming", false);
-    // clusterizer.add<std::string>("timeReference", "beamSpot"); // or "primaryVertex"
-    // clusterizer.add<edm::InputTag>("timeValueMap", edm::InputTag("tofPID:t0"));
-    // clusterizer.add<edm::InputTag>("timeErrorMap", edm::InputTag("tofPID:sigmat0"));
-    // clusterizer.add<edm::InputTag>("timeQualityMap", edm::InputTag("mtdTrackQualityMVA:mtdQualMVA"));
-    clusterizer.add<double>("timeQualityThreshold", 0.5);
+    clusterizer.add<bool>("useMTD", false);
+    // clusterizer.add<double>("trackTimeQualityThreshold", 0.5);
     clusterizer.add<double>("seedMax3DIPSignificance", 9999.0);
     clusterizer.add<double>("seedMax3DIPValue", 9999.0);
     clusterizer.add<double>("seedMin3DIPSignificance", 1.2);
@@ -134,19 +128,11 @@ private:
   edm::EDGetTokenT<InputContainer> token_tracks;
   edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> token_trackBuilder;
 
-  // edm::EDGetTokenT<edm::ValueMap<float>> token_timeValueMap;
-  // edm::EDGetTokenT<edm::ValueMap<float>> token_timeErrorMap;
-  // edm::EDGetTokenT<edm::ValueMap<float>> token_timeQualityMap;
-
   unsigned int minHits;
   unsigned int maxNTracks;
   double maxLIP;
   double maxTimeSig;
-  // bool useMTDTiming;
-  std::string timeReference;
-  // double timeQualityThreshold;
-  // bool cutTimeRange;
-  // double maxTimeRange;
+  std::string trackTimeReference;
   double minPt;
   double vertexMinAngleCosine;
   double vertexMinDLen2DSig;
@@ -167,11 +153,7 @@ TemplatedInclusiveVertexFinder<InputContainer, VTX>::TemplatedInclusiveVertexFin
       maxNTracks(params.getParameter<unsigned int>("maxNTracks")),
       maxLIP(params.getParameter<double>("maximumLongitudinalImpactParameter")),
       maxTimeSig(params.getParameter<double>("maximumTimeSignificance")),
-      // useMTDTiming(params.getParameter<bool>("useMTDTiming")),
-      timeReference(params.getParameter<std::string>("timeReference")),
-      // timeQualityThreshold(params.getParameter<double>("timeQualityThreshold")),  // 0.5
-      // cutTimeRange(params.getParameter<bool>("cutTimeRange")),
-      // maxTimeRange(params.getParameter<double>("maxTimeRange")),                  // 0.4
+      trackTimeReference(params.getParameter<std::string>("trackTimeReference")),
       minPt(params.getParameter<double>("minPt")),                                // 0.8
       vertexMinAngleCosine(params.getParameter<double>("vertexMinAngleCosine")),  // 0.98
       vertexMinDLen2DSig(params.getParameter<double>("vertexMinDLen2DSig")),      // 2.5
@@ -189,27 +171,19 @@ TemplatedInclusiveVertexFinder<InputContainer, VTX>::TemplatedInclusiveVertexFin
   token_tracks = consumes<InputContainer>(params.getParameter<edm::InputTag>("tracks"));
   token_trackBuilder = esConsumes<TransientTrackBuilder, TransientTrackRecord>(edm::ESInputTag("", "TransientTrackBuilder"));
 
-  if (timeReference == "beamSpot") {
-    std::cout << "chose beam spot as time reference" << std::endl;
-    clusterizer->setTimeValueMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeValueMap")));
-    clusterizer->setTimeErrorMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeErrorMap")));
-    clusterizer->setTimeQualityMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeQualityMap")));
+  if (trackTimeReference == "beamSpot") {
+    clusterizer->setTrackTimeValueMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("trackTimeBSValueMap")));
+    clusterizer->setTrackTimeErrorMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("trackTimeBSErrorMap")));
+    // clusterizer->setTrackTimeQualityMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("trackTimeBSQualityMap")));
+  } else if (trackTimeReference == "primaryVertex") {
+    clusterizer->setTrackTimeValueMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("trackTimePVValueMap")));
+    clusterizer->setTrackTimeErrorMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("trackTimePVErrorMap")));
+    // clusterizer->setTrackTimeQualityMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("trackTimePVQualityMap")));
+  } else {
+    clusterizer->setTrackTimeValueMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("trackTimeBSValueMap")));
+    clusterizer->setTrackTimeErrorMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("trackTimeBSErrorMap")));
+    // clusterizer->setTrackTimeQualityMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("trackTimeBSQualityMap")));
   }
-  // else if (timeReference == "primaryVertex") {
-  //   clusterizer->setTimeValueMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeValueMap")));
-  //   clusterizer->setTimeErrorMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeErrorMap")));
-  //   clusterizer->setTimeQualityMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeQualityMap")));
-  // }
-  else {
-    std::cout << "no chosen time reference, using beam spot as default" << std::endl;
-    clusterizer->setTimeValueMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeValueMap")));
-    clusterizer->setTimeErrorMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeErrorMap")));
-    clusterizer->setTimeQualityMapToken(consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeQualityMap")));
-  }
-
-  // token_timeValueMap = consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeValueMap"));
-  // token_timeErrorMap = consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeErrorMap"));
-  // token_timeQualityMap = consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("timeQualityMap"));
 
   produces<unsigned int>("nClusters");
   produces<Product>();
@@ -250,18 +224,6 @@ void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &ev
   edm::Handle<InputContainer> tracks;
   event.getByToken(token_tracks, tracks);
 
-  // edm::Handle<edm::ValueMap<float>> edm_timeValueMap;
-  // event.getByToken(token_timeValueMap, edm_timeValueMap);
-  // const edm::ValueMap<float>& timeValueMap = *(edm_timeValueMap.product());
-
-  // edm::Handle<edm::ValueMap<float>> edm_timeErrorMap;
-  // event.getByToken(token_timeErrorMap, edm_timeErrorMap);
-  // const edm::ValueMap<float>& timeErrorMap = *(edm_timeErrorMap.product());
-
-  // edm::Handle<edm::ValueMap<float>> edm_timeQualityMap;
-  // event.getByToken(token_timeQualityMap, edm_timeQualityMap);
-  // const edm::ValueMap<float>& timeQualityMap = *(edm_timeQualityMap.product());
-
   edm::ESHandle<TransientTrackBuilder> trackBuilder = es.getHandle(token_trackBuilder);
 
   auto recoVertices = std::make_unique<Product>();
@@ -292,7 +254,6 @@ void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &ev
       tts.push_back(tt);
     }
     std::vector<TracksClusteringFromDisplacedSeed::Cluster> clusters = clusterizer->clusters(event, pv, tts);
-        // useMTDTiming, timeValueMap, timeErrorMap, timeQualityMap, timeQualityThreshold, maxTimeRange);
 
     // Create BS object from PV to feed in the AVR
     BeamSpot::CovarianceMatrix cov;

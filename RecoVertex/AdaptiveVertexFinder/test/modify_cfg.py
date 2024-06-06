@@ -1,4 +1,4 @@
-from TTToHadronic_noPU_NEW_cfg import *
+from TTToHadronic_noPU_cfg import *
 
 
 def addTrackMCMatching(process):
@@ -19,11 +19,23 @@ def addTrackMCMatching(process):
     return process
 
 
+def addMTDTrackTimeExtrapolationToPV(process):
+    process.trackExtenderWithMTDPV = process.trackExtenderWithMTD.clone(
+        TrackTimeReference = cms.string("primaryVertex")
+    )
+    process.fastTimingGlobalRecoTask = cms.Task(
+        process.mtdTrackQualityMVA,
+        process.trackExtenderWithMTD,
+        process.trackExtenderWithMTDPV
+    )
+    return process
+
+
 def addMTDToIVF(process):
     # Cluster with all tracks that have a time extrapolated to the beam spot
     process.inclusiveVertexFinderMTDBS = process.inclusiveVertexFinder.clone(
         clusterizer = cms.PSet(
-            useMTDTiming = cms.bool(True)
+            useMTD = cms.bool(True)
         )
     )
     process.vertexMergerMTDTiming = process.vertexMerger.clone(
@@ -39,7 +51,7 @@ def addMTDToIVF(process):
     # Cluster with all tracks that have a time extrapolated to the beam spot and time range cut
     process.inclusiveVertexFinderMTDBS4 = process.inclusiveVertexFinder.clone(
         clusterizer = cms.PSet(
-            useMTDTiming = cms.bool(True),
+            useMTD = cms.bool(True),
             cutTimeRange = cms.bool(True),
         )
     )
@@ -54,21 +66,21 @@ def addMTDToIVF(process):
     )
 
     # Cluster with all tracks that have a time extrapolated to the primary vertex
-    # process.inclusiveVertexFinderMTDPV = process.inclusiveVertexFinder.clone(
-    #     clusterizer = cms.PSet(
-    #         useMTDTiming = cms.bool(True),
-    #         timeReference = cms.string("primaryVertex")
-    #     )
-    # )
-    # process.vertexMergerMTDTiming = process.vertexMerger.clone(
-    #     secondaryVertices = cms.InputTag("inclusiveVertexFinderMTDPV")
-    # )
-    # process.inclusiveVertexingMTDPVTask = cms.Task(
-    #     process.inclusiveSecondaryVertices,
-    #     process.inclusiveVertexFinderMTDBS,
-    #     process.trackVertexArbitrator,
-    #     process.vertexMergerMTDTiming
-    # )
+    process.inclusiveVertexFinderMTDPV = process.inclusiveVertexFinder.clone(
+        clusterizer = cms.PSet(
+            useMTD = cms.bool(True)
+        ),
+        trackTimeReference = cms.string("primaryVertex")
+    )
+    process.vertexMergerMTDTiming = process.vertexMerger.clone(
+        secondaryVertices = cms.InputTag("inclusiveVertexFinderMTDPV")
+    )
+    process.inclusiveVertexingMTDPVTask = cms.Task(
+        process.inclusiveSecondaryVertices,
+        process.inclusiveVertexFinderMTDPV,
+        process.trackVertexArbitrator,
+        process.vertexMergerMTDTiming
+    )
 
     # Update vertex reco task
     process.vertexrecoTask = cms.Task(
@@ -77,7 +89,7 @@ def addMTDToIVF(process):
         process.inclusiveVertexingTask,
         process.inclusiveVertexingMTDBSTask,
         process.inclusiveVertexingMTDBS4Task,
-        # process.inclusiveVertexingMTDPVTask,
+        process.inclusiveVertexingMTDPVTask,
         process.offlinePrimaryVertices,
         process.offlinePrimaryVertices4D,
         process.offlinePrimaryVertices4DWithBS,
@@ -118,9 +130,9 @@ def dropKeepBranches(process):
         "keep *_trackMCMatch_*_BTV",
         "keep *_pfDeepCSVJetTags_*_BTV",
         "keep *_slimmedJets_tagInfos_BTV",
+        "keep *_trackExtenderWithMTD*_generalTrackt0_BTV",
+        "keep *_trackExtenderWithMTD*_generalTracksigmat0_BTV",
         "keep *_mtdTrackQualityMVA_mtdQualMVA_BTV",
-        "keep *_tofPID_sigmat0_BTV",
-        "keep *_tofPID_t0_BTV",
         "keep recoJetFlavourInfoMatchingCollection_slimmedGenJetsFlavourInfos__BTV",
         "keep PileupSummaryInfos_slimmedAddPileupInfo_*_BTV",
         "keep patElectrons_slimmedElectrons__BTV",
@@ -137,7 +149,7 @@ def dropKeepBranches(process):
         "keep *_inclusiveVertexFinder_*_BTV",
         "keep *_inclusiveVertexFinderMTDBS_*_BTV",
         "keep *_inclusiveVertexFinderMTDBS4_*_BTV",
-        # "keep *_inclusiveVertexFinderMTDPV_*_BTV",
+        "keep *_inclusiveVertexFinderMTDPV_*_BTV",
         "keep recoVertexs_offlinePrimaryVertices__BTV",
         "keep recoVertexs_offlineSlimmedPrimaryVertices__BTV",
         "keep recoVertexs_offlineSlimmedPrimaryVerticesWithBS__BTV",
@@ -161,8 +173,9 @@ def dumpDebug(process, debug):
 
 
 setMaxEvents(process, 10)
-setOutputFileName(process, "TTToHadronic_noPU_NEW_slimmed.root")
+setOutputFileName(process, "TTToHadronic_noPU_slimmed.root")
 addTrackMCMatching(process)
+addMTDTrackTimeExtrapolationToPV(process)
 addMTDToIVF(process)
 dropKeepBranches(process)
 dumpDebug(process, False)
