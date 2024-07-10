@@ -15,7 +15,7 @@ config.Data.inputDataset         = "/TT_TuneCP5_14TeV-powheg-pythia8/Phase2Sprin
 config.Data.inputDBS             = "global"
 config.Data.splitting            = "FileBased"
 config.Data.unitsPerJob          = 1
-config.Data.outLFNDirBase        = "/store/user/etsai"
+config.Data.outLFNDirBase        = "/store/group/phys_btag/etsai"
 config.Data.publication          = False
 config.Data.outputDatasetTag     = "TTToHadronic_noPU"
 

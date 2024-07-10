@@ -264,7 +264,6 @@ std::vector<VTX> TrackVertexArbitration<VTX>::trackVertexArbitrator(edm::Handle<
       } else {
 
 #ifdef VTXDEBUG
-
         std::cout << " . t : " << itrack << " ref " << ref.key() << " w: " << w
                   << " svip: " << isv.second.significance() << " " << isv.second.value()
                   << " pvip: " << ipv.significance() << " " << ipv.value() << " dr: " << dR << std::endl;

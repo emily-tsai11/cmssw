@@ -38,14 +38,14 @@ def addMTDToIVF(process):
             useMTD = cms.bool(True)
         )
     )
-    process.vertexMergerMTDTiming = process.vertexMerger.clone(
+    process.vertexMergerMTDBS = process.vertexMerger.clone(
         secondaryVertices = cms.InputTag("inclusiveVertexFinderMTDBS")
     )
     process.inclusiveVertexingMTDBSTask = cms.Task(
         process.inclusiveSecondaryVertices,
         process.inclusiveVertexFinderMTDBS,
         process.trackVertexArbitrator,
-        process.vertexMergerMTDTiming
+        process.vertexMergerMTDBS
     )
 
     # Cluster with all tracks that have a time extrapolated to the beam spot and time range cut
@@ -55,14 +55,14 @@ def addMTDToIVF(process):
             cutTimeRange = cms.bool(True),
         )
     )
-    process.vertexMergerMTDTiming = process.vertexMerger.clone(
+    process.vertexMergerMTDBS4 = process.vertexMerger.clone(
         secondaryVertices = cms.InputTag("inclusiveVertexFinderMTDBS4")
     )
     process.inclusiveVertexingMTDBS4Task = cms.Task(
         process.inclusiveSecondaryVertices,
         process.inclusiveVertexFinderMTDBS4,
         process.trackVertexArbitrator,
-        process.vertexMergerMTDTiming
+        process.vertexMergerMTDBS4
     )
 
     # Cluster with all tracks that have a time extrapolated to the primary vertex
@@ -72,14 +72,14 @@ def addMTDToIVF(process):
         ),
         trackTimeReference = cms.string("primaryVertex")
     )
-    process.vertexMergerMTDTiming = process.vertexMerger.clone(
+    process.vertexMergerMTDPV = process.vertexMerger.clone(
         secondaryVertices = cms.InputTag("inclusiveVertexFinderMTDPV")
     )
     process.inclusiveVertexingMTDPVTask = cms.Task(
         process.inclusiveSecondaryVertices,
         process.inclusiveVertexFinderMTDPV,
         process.trackVertexArbitrator,
-        process.vertexMergerMTDTiming
+        process.vertexMergerMTDPV
     )
 
     # Update vertex reco task

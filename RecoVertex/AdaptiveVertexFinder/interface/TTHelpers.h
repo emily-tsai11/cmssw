@@ -16,7 +16,6 @@ namespace tthelpers {
     return trackbuilder->build(ref);
   }
 
-
   inline reco::TransientTrack buildTT(edm::Handle<edm::View<reco::Candidate> > &tracks,
                                       edm::ESHandle<TransientTrackBuilder> &trackbuilder,
                                       unsigned int k) {
