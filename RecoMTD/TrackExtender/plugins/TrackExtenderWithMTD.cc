@@ -40,6 +40,7 @@
 #include "TrackingTools/GeomPropagators/interface/Propagator.h"
 
 #include "TrackingTools/PatternTools/interface/TSCBLBuilderWithPropagator.h"
+#include "TrackingTools/PatternTools/interface/TSCPBuilderNoMaterial.h"
 
 #include "RecoTracker/TransientTrackingRecHit/interface/Traj2TrackHits.h"
 #include "TrackingTools/TrackRefitter/interface/TrackTransformer.h"
@@ -303,6 +304,34 @@ namespace {
     return tscbl.isValid();
   }
 
+  bool getTrajectoryStateClosestToPoint(const Trajectory& traj,
+                                        const GlobalPoint& point,
+                                        TrajectoryStateClosestToPoint& tscp) {
+    // get the state closest to the point
+    TrajectoryStateOnSurface stateForProjectionToPointOnSurface =
+        traj.closestMeasurement(point).updatedState();
+
+    if (!stateForProjectionToPointOnSurface.isValid()) {
+      edm::LogError("CannotPropagateToPoint") << "the state on the closest measurement is not valid. skipping track.";
+      return false;
+    }
+
+    const FreeTrajectoryState& stateForProjectionToPoint = *stateForProjectionToPointOnSurface.freeState();
+
+    TSCPBuilderNoMaterial tscpBuilder;
+    tscp = tscpBuilder(stateForProjectionToPoint, point);
+
+    return tscp.isValid();
+  }
+
+  bool getTrajectoryStateClosestToVertex(const Trajectory& traj,
+                                         const reco::Vertex& vtx,
+                                         TrajectoryStateClosestToPoint& tscp) {
+    // get the state closest to the vertex
+    GlobalPoint point(vtx.x(), vtx.y(), vtx.z());
+    return getTrajectoryStateClosestToPoint(traj, point, tscp);
+  }
+
   bool trackPathLength(const Trajectory& traj,
                        const TrajectoryStateClosestToBeamLine& tscbl,
                        const Propagator* thePropagator,
@@ -370,6 +399,73 @@ namespace {
     return trackPathLength(traj, tscbl, thePropagator, pathlength, trs);
   }
 
+  bool trackPathLength(const Trajectory& traj,
+                       const TrajectoryStateClosestToPoint& tscp,
+                       const Propagator* thePropagator,
+                       float& pathlength,
+                       TrackSegments& trs) {
+    pathlength = 0.f;
+
+    bool validpropagation = true;
+    float oldp = traj.measurements().begin()->updatedState().globalMomentum().mag();
+    float pathlength1 = 0.f;
+    float pathlength2 = 0.f;
+
+    //add pathlength layer by layer
+    for (auto it = traj.measurements().begin(); it != traj.measurements().end() - 1; ++it) {
+      const auto& propresult = thePropagator->propagateWithPath(it->updatedState(), (it + 1)->updatedState().surface());
+      float layerpathlength = std::abs(propresult.second);
+      if (layerpathlength == 0.f) {
+        validpropagation = false;
+      }
+      pathlength1 += layerpathlength;
+      trs.addSegment(layerpathlength, (it + 1)->updatedState().globalMomentum().mag2());
+      LogTrace("TrackExtenderWithMTD") << "TSOS " << std::fixed << std::setw(4) << trs.size() << " R_i " << std::fixed
+                                       << std::setw(14) << it->updatedState().globalPosition().perp() << " z_i "
+                                       << std::fixed << std::setw(14) << it->updatedState().globalPosition().z()
+                                       << " R_e " << std::fixed << std::setw(14)
+                                       << (it + 1)->updatedState().globalPosition().perp() << " z_e " << std::fixed
+                                       << std::setw(14) << (it + 1)->updatedState().globalPosition().z() << " p "
+                                       << std::fixed << std::setw(14) << (it + 1)->updatedState().globalMomentum().mag()
+                                       << " dp " << std::fixed << std::setw(14)
+                                       << (it + 1)->updatedState().globalMomentum().mag() - oldp;
+      oldp = (it + 1)->updatedState().globalMomentum().mag();
+    }
+
+    //add distance from bs to first measurement
+    auto const& tscpPCA = tscp.theState();
+    auto const& aSurface = traj.direction() == alongMomentum ? traj.firstMeasurement().updatedState().surface()
+                                                             : traj.lastMeasurement().updatedState().surface();
+    pathlength2 = thePropagator->propagateWithPath(tscpPCA, aSurface).second;
+    if (pathlength2 == 0.f) {
+      validpropagation = false;
+    }
+    pathlength = pathlength1 + pathlength2;
+    trs.addSegment(pathlength2, tscpPCA.momentum().mag2());
+    LogTrace("TrackExtenderWithMTD") << "TSOS " << std::fixed << std::setw(4) << trs.size() << " R_e " << std::fixed
+                                     << std::setw(14) << tscpPCA.position().perp() << " z_e " << std::fixed
+                                     << std::setw(14) << tscpPCA.position().z() << " p " << std::fixed << std::setw(14)
+                                     << tscpPCA.momentum().mag() << " dp " << std::fixed << std::setw(14)
+                                     << tscpPCA.momentum().mag() - oldp;
+    return validpropagation;
+  }
+
+  bool trackPathLength(const Trajectory& traj,
+                       const reco::Vertex& vtx,
+                       const Propagator* thePropagator,
+                       float& pathlength,
+                       TrackSegments& trs) {
+    pathlength = 0.f;
+
+    TrajectoryStateClosestToPoint tscp;
+    GlobalPoint vtxPosition(vtx.x(), vtx.y(), vtx.z());
+    bool tscp_status = getTrajectoryStateClosestToPoint(traj, vtxPosition, tscp);
+
+    if (!tscp_status)
+      return false;
+
+    return trackPathLength(traj, tscp, thePropagator, pathlength, trs);
+  }
 }  // namespace
 
 template <class TrackCollection>
@@ -447,14 +543,42 @@ public:
     return RefitDirection::undetermined;
   }
 
+  template <class TimeReferencePoint>
   reco::Track buildTrack(const reco::TrackRef&,
                          const Trajectory&,
                          const Trajectory&,
-                         const reco::BeamSpot&,
+                         const TimeReferencePoint&,
+                         const FreeTrajectoryState&,
                          const MagneticField* field,
                          const Propagator* prop,
                          bool hasMTD,
                          float& pathLength,
+                         float& tmtdOut,
+                         float& sigmatmtdOut,
+                         float& tofpi,
+                         float& tofk,
+                         float& tofp) const;
+  reco::Track buildTrack(const reco::TrackRef& orig,
+                         const Trajectory& traj,
+                         const Trajectory& trajWithMtd,
+                         const reco::BeamSpot& bs,
+                         const MagneticField* field,
+                         const Propagator* thePropagator,
+                         bool hasMTD,
+                         float& pathLengthOut,
+                         float& tmtdOut,
+                         float& sigmatmtdOut,
+                         float& tofpi,
+                         float& tofk,
+                         float& tofp) const;
+  reco::Track buildTrack(const reco::TrackRef& orig,
+                         const Trajectory& traj,
+                         const Trajectory& trajWithMtd,
+                         const reco::Vertex& vtx,
+                         const MagneticField* field,
+                         const Propagator* thePropagator,
+                         bool hasMTD,
+                         float& pathLengthOut,
                          float& tmtdOut,
                          float& sigmatmtdOut,
                          float& tofpi,
@@ -492,7 +616,7 @@ private:
   edm::EDGetTokenT<VertexCollection> vtxToken_;
 
   const bool updateTraj_, updateExtra_, updatePattern_;
-  const std::string mtdRecHitBuilder_, propagator_, transientTrackBuilder_;
+  const std::string mtdRecHitBuilder_, trackTimeReference_, propagator_, transientTrackBuilder_;
   std::unique_ptr<MeasurementEstimator> theEstimator;
   std::unique_ptr<TrackTransformer> theTransformer;
   edm::ESHandle<TransientTrackBuilder> builder_;
@@ -530,6 +654,7 @@ TrackExtenderWithMTDT<TrackCollection>::TrackExtenderWithMTDT(const ParameterSet
       updateExtra_(iConfig.getParameter<bool>("updateTrackExtra")),
       updatePattern_(iConfig.getParameter<bool>("updateTrackHitPattern")),
       mtdRecHitBuilder_(iConfig.getParameter<std::string>("MTDRecHitBuilder")),
+      trackTimeReference_(iConfig.getParameter<std::string>("TrackTimeReference")),
       propagator_(iConfig.getParameter<std::string>("Propagator")),
       transientTrackBuilder_(iConfig.getParameter<std::string>("TransientTrackBuilder")),
       estMaxChi2_(iConfig.getParameter<double>("estimatorMaxChi2")),
@@ -548,6 +673,10 @@ TrackExtenderWithMTDT<TrackCollection>::TrackExtenderWithMTDT(const ParameterSet
       genVtxTimeToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genVtxTimeSrc"));
     } else
       vtxToken_ = consumes<VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxSrc"));
+  } else {
+    if (trackTimeReference_ == "primaryVertex") {
+      vtxToken_ = consumes<VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxSrc"));
+    }
   }
 
   theEstimator = std::make_unique<Chi2MeasurementEstimator>(estMaxChi2_, estMaxNSigma_);
@@ -600,6 +729,7 @@ void TrackExtenderWithMTDT<TrackCollection>::fillDescriptions(edm::Configuration
   desc.add<bool>("updateTrackHitPattern", true);
   desc.add<std::string>("TransientTrackBuilder", "TransientTrackBuilder");
   desc.add<std::string>("MTDRecHitBuilder", "MTDRecHitBuilder");
+  desc.add<std::string>("TrackTimeReference", "beamSpot"); // or "primaryVertex"
   desc.add<std::string>("Propagator", "PropagatorWithMaterialForMTD");
   TrackTransformer::fillPSetDescription(transDesc,
                                         false,
@@ -696,10 +826,9 @@ void TrackExtenderWithMTDT<TrackCollection>::produce(edm::Event& ev, const edm::
   const auto& bs = ev.get(bsToken_);
 
   const Vertex* pv = nullptr;
-  if (useVertex_ && !useSimVertex_) {
+  if ((useVertex_ && !useSimVertex_) || (!useVertex_ && (trackTimeReference_ == "primaryVertex"))) {
     auto const& vtxs = ev.get(vtxToken_);
-    if (!vtxs.empty())
-      pv = &vtxs[0];
+    if (!vtxs.empty()) pv = &vtxs[0];
   }
 
   std::unique_ptr<math::XYZTLorentzVectorF> genPV(nullptr);
@@ -745,14 +874,26 @@ void TrackExtenderWithMTDT<TrackCollection>::produce(edm::Event& ev, const edm::
     if (trajs.isValid()) {
       // get the outermost trajectory point on the track
       TrajectoryStateOnSurface tsos = builder_->build(track).outermostMeasurementState();
-      TrajectoryStateClosestToBeamLine tscbl;
-      bool tscbl_status = getTrajectoryStateClosestToBeamLine(trajs, bs, prop, tscbl);
 
-      if (tscbl_status) {
-        float pmag2 = tscbl.trackStateAtPCA().momentum().mag2();
+      TrajectoryStateClosestToBeamLine tscbl;
+      TrajectoryStateClosestToPoint tscp;
+      bool tscbl_status = false;
+      bool tscp_status = false;
+      if (trackTimeReference_ == "beamSpot") {
+        tscbl_status = getTrajectoryStateClosestToBeamLine(trajs, bs, prop, tscbl);
+      } else if (trackTimeReference_ == "primaryVertex") {
+        tscp_status = getTrajectoryStateClosestToVertex(trajs, *pv, tscp);
+      }
+
+      if ((tscbl_status && !tscp_status) || (!tscbl_status && tscp_status)) {
+        float pmag2 = 0.f;
+        if (tscbl_status)     pmag2 = tscbl.trackStateAtPCA().momentum().mag2();
+        else if (tscp_status) pmag2 = tscp.theState().momentum().mag2();
+
         float pathlength0;
         TrackSegments trs0;
-        trackPathLength(trajs, tscbl, prop, pathlength0, trs0);
+        if (tscbl_status)     trackPathLength(trajs, tscbl, prop, pathlength0, trs0);
+        else if (tscp_status) trackPathLength(trajs, tscp, prop, pathlength0, trs0);
 
         const auto& btlhits = tryBTLLayers(tsos,
                                            trajs,
@@ -808,19 +949,36 @@ void TrackExtenderWithMTDT<TrackCollection>::produce(edm::Event& ev, const edm::
       float pathLength = 0.f, tmtd = 0.f, sigmatmtd = -1.f, tofpi = 0.f, tofk = 0.f, tofp = 0.f;
       LogTrace("TrackExtenderWithMTD") << "Refit track " << itrack << " p/pT = " << track->p() << " " << track->pt()
                                        << " eta = " << track->eta();
-      reco::Track result = buildTrack(track,
-                                      thetrj,
-                                      trj,
-                                      bs,
-                                      magfield.product(),
-                                      prop,
-                                      !trajwithmtd.empty() && !mtdthits.empty(),
-                                      pathLength,
-                                      tmtd,
-                                      sigmatmtd,
-                                      tofpi,
-                                      tofk,
-                                      tofp);
+      reco::Track result;
+      if (trackTimeReference_ == "beamSpot") {
+        result = buildTrack(track,
+                            thetrj,
+                            trj,
+                            bs,
+                            magfield.product(),
+                            prop,
+                            !trajwithmtd.empty() && !mtdthits.empty(),
+                            pathLength,
+                            tmtd,
+                            sigmatmtd,
+                            tofpi,
+                            tofk,
+                            tofp);
+      } else if (trackTimeReference_ == "primaryVertex") {
+        result = buildTrack(track,
+                            thetrj,
+                            trj,
+                            *pv,
+                            magfield.product(),
+                            prop,
+                            !trajwithmtd.empty() && !mtdthits.empty(),
+                            pathLength,
+                            tmtd,
+                            sigmatmtd,
+                            tofpi,
+                            tofk,
+                            tofp);
+      }
       if (result.ndof() >= 0) {
         /// setup the track extras
         reco::TrackExtra::TrajParams trajParams;
@@ -1127,10 +1285,12 @@ void TrackExtenderWithMTDT<TrackCollection>::fillMatchingHits(const DetLayer* il
 //below is unfortunately ripped from other places but
 //since track producer doesn't know about MTD we have to do this
 template <class TrackCollection>
+template <class TimeReferencePoint>
 reco::Track TrackExtenderWithMTDT<TrackCollection>::buildTrack(const reco::TrackRef& orig,
                                                                const Trajectory& traj,
                                                                const Trajectory& trajWithMtd,
-                                                               const reco::BeamSpot& bs,
+                                                               const TimeReferencePoint& ref,
+                                                               const FreeTrajectoryState& fts,
                                                                const MagneticField* field,
                                                                const Propagator* thePropagator,
                                                                bool hasMTD,
@@ -1140,15 +1300,9 @@ reco::Track TrackExtenderWithMTDT<TrackCollection>::buildTrack(const reco::Track
                                                                float& tofpi,
                                                                float& tofk,
                                                                float& tofp) const {
-  TrajectoryStateClosestToBeamLine tscbl;
-  bool tsbcl_status = getTrajectoryStateClosestToBeamLine(traj, bs, thePropagator, tscbl);
-
-  if (!tsbcl_status)
-    return reco::Track();
-
-  GlobalPoint v = tscbl.trackStateAtPCA().position();
+  GlobalPoint v = fts.position();
   math::XYZPoint pos(v.x(), v.y(), v.z());
-  GlobalVector p = tscbl.trackStateAtPCA().momentum();
+  GlobalVector p = fts.momentum();
   math::XYZVector mom(p.x(), p.y(), p.z());
 
   int ndof = traj.ndof();
@@ -1166,8 +1320,8 @@ reco::Track TrackExtenderWithMTDT<TrackCollection>::buildTrack(const reco::Track
                        int(ndof),
                        pos,
                        mom,
-                       tscbl.trackStateAtPCA().charge(),
-                       tscbl.trackStateAtPCA().curvilinearError(),
+                       fts.charge(),
+                       fts.curvilinearError(),
                        orig->algo(),
                        reco::TrackBase::undefQuality,
                        t0,
@@ -1180,7 +1334,7 @@ reco::Track TrackExtenderWithMTDT<TrackCollection>::buildTrack(const reco::Track
   if (hasMTD) {
     float pathlength;
     TrackSegments trs;
-    bool validpropagation = trackPathLength(trajWithMtd, bs, thePropagator, pathlength, trs);
+    bool validpropagation = trackPathLength(trajWithMtd, ref, thePropagator, pathlength, trs);
     float thit = 0.f;
     float thiterror = -1.f;
     bool validmtd = false;
@@ -1271,6 +1425,78 @@ reco::Track TrackExtenderWithMTDT<TrackCollection>::buildTrack(const reco::Track
   }
 
   return routput();
+}
+
+template <class TrackCollection>
+reco::Track TrackExtenderWithMTDT<TrackCollection>::buildTrack(const reco::TrackRef& orig,
+                                                               const Trajectory& traj,
+                                                               const Trajectory& trajWithMtd,
+                                                               const reco::BeamSpot& bs,
+                                                               const MagneticField* field,
+                                                               const Propagator* thePropagator,
+                                                               bool hasMTD,
+                                                               float& pathLengthOut,
+                                                               float& tmtdOut,
+                                                               float& sigmatmtdOut,
+                                                               float& tofpi,
+                                                               float& tofk,
+                                                               float& tofp) const {
+  TrajectoryStateClosestToBeamLine tscbl;
+  bool tsbcl_status = getTrajectoryStateClosestToBeamLine(traj, bs, thePropagator, tscbl);
+
+  if (!tsbcl_status)
+    return reco::Track();
+  else
+    return buildTrack(orig,
+                      traj,
+                      trajWithMtd,
+                      bs,
+                      tscbl.trackStateAtPCA(),
+                      field,
+                      thePropagator,
+                      hasMTD,
+                      pathLengthOut,
+                      tmtdOut,
+                      sigmatmtdOut,
+                      tofpi,
+                      tofk,
+                      tofp);
+}
+
+template <class TrackCollection>
+reco::Track TrackExtenderWithMTDT<TrackCollection>::buildTrack(const reco::TrackRef& orig,
+                                                               const Trajectory& traj,
+                                                               const Trajectory& trajWithMtd,
+                                                               const reco::Vertex& vtx,
+                                                               const MagneticField* field,
+                                                               const Propagator* thePropagator,
+                                                               bool hasMTD,
+                                                               float& pathLengthOut,
+                                                               float& tmtdOut,
+                                                               float& sigmatmtdOut,
+                                                               float& tofpi,
+                                                               float& tofk,
+                                                               float& tofp) const {
+  TrajectoryStateClosestToPoint tscp;
+  bool tsbp_status = getTrajectoryStateClosestToVertex(traj, vtx, tscp);
+
+  if (!tsbp_status)
+    return reco::Track();
+  else
+    return buildTrack(orig,
+                      traj,
+                      trajWithMtd,
+                      vtx,
+                      tscp.theState(),
+                      field,
+                      thePropagator,
+                      hasMTD,
+                      pathLengthOut,
+                      tmtdOut,
+                      sigmatmtdOut,
+                      tofpi,
+                      tofk,
+                      tofp);
 }
 
 template <class TrackCollection>

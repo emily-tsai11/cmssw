@@ -1,10 +1,12 @@
-#ifndef TTHelper_s
-#define TTHelper_s
+#ifndef RecoVertex_AdaptiveVertexFinder_TTHelpers_h
+#define RecoVertex_AdaptiveVertexFinder_TTHelpers_h
+
 
 #include "DataFormats/Candidate/interface/Candidate.h"
 
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+
 
 namespace tthelpers {
   inline reco::TransientTrack buildTT(edm::Handle<reco::TrackCollection> &tracks,
@@ -13,6 +15,7 @@ namespace tthelpers {
     reco::TrackRef ref(tracks, k);
     return trackbuilder->build(ref);
   }
+
   inline reco::TransientTrack buildTT(edm::Handle<edm::View<reco::Candidate> > &tracks,
                                       edm::ESHandle<TransientTrackBuilder> &trackbuilder,
                                       unsigned int k) {
@@ -20,5 +23,7 @@ namespace tthelpers {
       return reco::TransientTrack();
     return trackbuilder->build(tracks->ptrAt(k));
   }
-}  // namespace tthelpers
+} // namespace tthelpers
+
+
 #endif

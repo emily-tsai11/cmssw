@@ -1,10 +1,13 @@
-#ifndef _AdaptiveVertexReconstructor_H_
-#define _AdaptiveVertexReconstructor_H_
+#ifndef RecoVertex_AdaptiveVertexFinder_AdaptiveVertexReconstructor_h
+#define RecoVertex_AdaptiveVertexFinder_AdaptiveVertexReconstructor_h
+
 
 #include "RecoVertex/VertexPrimitives/interface/VertexReconstructor.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "RecoVertex/AdaptiveVertexFit/interface/AdaptiveVertexFitter.h"
+
 #include <set>
+
 
 class AdaptiveVertexReconstructor : public VertexReconstructor {
 public:
@@ -78,5 +81,6 @@ private:
   // the minimum weight for a track to be considered "significant".
   float theWeightThreshold;
 };
+
 
 #endif

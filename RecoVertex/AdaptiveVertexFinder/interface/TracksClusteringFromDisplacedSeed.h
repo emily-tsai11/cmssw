@@ -1,9 +1,14 @@
+#ifndef RecoVertex_AdaptiveVertexFinder_TracksClusteringFromDisplacedSeed_h
+#define RecoVertex_AdaptiveVertexFinder_TracksClusteringFromDisplacedSeed_h
+
+
 #include <memory>
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-#include "FWCore/Utilities/interface/InputTag.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Utilities/interface/InputTag.h"
+#include "FWCore/Utilities/interface/isFinite.h"
 
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
@@ -19,7 +24,9 @@
 #include "TrackingTools/PatternTools/interface/TwoTrackMinimumDistance.h"
 #include "TrackingTools/IPTools/interface/IPTools.h"
 
-//#define VTXDEBUG
+
+// #define VTXDEBUG
+
 
 class TracksClusteringFromDisplacedSeed {
 public:
@@ -28,30 +35,51 @@ public:
     reco::TransientTrack seedingTrack;
     std::vector<reco::TransientTrack> tracks;
   };
-  TracksClusteringFromDisplacedSeed(const edm::ParameterSet &params);
 
-  std::vector<Cluster> clusters(const reco::Vertex &pv, const std::vector<reco::TransientTrack> &selectedTracks,
-                                bool useMTDTiming, const edm::ValueMap<float> &timeValueMap,
-                                const edm::ValueMap<float> &timeErrorMap, const edm::ValueMap<float> &timeQualityMap,
-                                float timeQualityThreshold, double maxTimeRange);
+  TracksClusteringFromDisplacedSeed(const edm::ParameterSet &params);
+  std::vector<Cluster> clusters(const edm::Event &event, const reco::Vertex &pv,
+                                const std::vector<reco::TransientTrack> &selectedTracks);
+
+  void setTrackTimeValueMapToken(const edm::EDGetTokenT<edm::ValueMap<float>> tokenTrackTimeValueMap) {
+    token_trackTimeValueMap = tokenTrackTimeValueMap;
+  }
+
+  void setTrackTimeErrorMapToken(const edm::EDGetTokenT<edm::ValueMap<float>> tokenTrackTimeErrorMap) {
+    token_trackTimeErrorMap = tokenTrackTimeErrorMap;
+  }
+
+  // void setTrackTimeQualityMapToken(const edm::EDGetTokenT<edm::ValueMap<float>> tokenTrackTimeQualityMap) {
+  //   token_trackTimeQualityMap = tokenTrackTimeQualityMap;
+  // }
 
 private:
   bool trackFilter(const reco::TrackRef &track) const;
-  std::pair<std::vector<reco::TransientTrack>, GlobalPoint> nearTracks(
-                                const reco::TransientTrack &seed, const std::vector<reco::TransientTrack> &tracks,
-                                const reco::Vertex &primaryVertex, bool useMTDTiming, const edm::ValueMap<float> &timeValueMap,
-                                const edm::ValueMap<float> &timeErrorMap, const edm::ValueMap<float> &timeQualityMap,
-                                float timeQualityThreshold, double maxTimeRange) const;
-  
+  std::pair<std::vector<reco::TransientTrack>, GlobalPoint> nearTracks(const reco::TransientTrack &seed,
+                const std::vector<reco::TransientTrack> &tracks, const reco::Vertex &primaryVertex) const;
 
-  //	unsigned int				maxNTracks;
+  edm::EDGetTokenT<edm::ValueMap<float>> token_trackTimeValueMap;
+  edm::EDGetTokenT<edm::ValueMap<float>> token_trackTimeErrorMap;
+  // edm::EDGetTokenT<edm::ValueMap<float>> token_trackTimeQualityMap;
+
+  edm::ValueMap<float> trackTimeValueMap;
+  edm::ValueMap<float> trackTimeErrorMap;
+  // edm::ValueMap<float> trackTimeQualityMap;
+
+  // unsigned int maxNTracks;
+  bool useMTD;
+  // double trackTimeQualityThreshold;
   double max3DIPSignificance;
   double max3DIPValue;
   double min3DIPSignificance;
   double min3DIPValue;
+  bool cutTimeRange;
+  double maxTimeRange;
   double clusterMaxDistance;
   double clusterMaxSignificance;
   double distanceRatio;
   double clusterMinAngleCosine;
   double maxTimeSignificance;
 };
+
+
+#endif
