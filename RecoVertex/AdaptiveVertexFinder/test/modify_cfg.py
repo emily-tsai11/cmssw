@@ -1,20 +1,16 @@
 from TTToHadronic_noPU_cfg import *
 
 
-def addTrackMCMatching(process):
-    process.trackMCMatch = process.prunedTrackMCMatch.clone(
-        associator = cms.string("quickTrackAssociatorByHits"),
-        trackingParticles = cms.InputTag("mix", "MergedTrackTruth")
+def addMergedGenParticles(process):
+    process.mergedGenParticles = cms.EDProducer("MergedGenParticleProducer",
+        inputPruned = cms.InputTag("prunedGenParticles"),
+        inputPacked = cms.InputTag("packedGenParticles"),
     )
-    process.trackMCMatchTask = cms.Task(
-        process.tpClusterProducer,
-        process.trackMCMatch,
-        process.quickTrackAssociatorByHits
-    )
-    process.recosim = cms.Task(
-        process.muonSimClassificationByHitsTask,
-        process.trackPrunedMCMatchTask,
-        process.trackMCMatchTask
+    process.genParticlesTask = cms.Task(
+        process.packedGenParticles,
+        process.prunedGenParticles,
+        process.mergedGenParticles,
+        process.prunedGenParticlesWithStatusOne
     )
     return process
 
@@ -118,42 +114,22 @@ def dropKeepBranches(process):
     process.MINIAODSIMoutput.outputCommands.extend((
         "drop *",
         "keep SimTracks_g4SimHits__SIM",
-        "keep SimVertexs_g4SimHits__SIM",
-        "keep edmHepMCProduct_generatorSmeared__SIM",
-        "keep float_genParticles_t0_HLT",
-        "keep *_mix_MergedTrackTruth_HLT",
-        "keep recoGenJets_ak4GenJets__HLT",
-        "keep recoGenJets_ak4GenJetsNoNu__HLT",
-        "keep recoGenParticles_genParticles__HLT",
-        "keep double_fixedGridRhoFastjetAll__BTV",
-        "keep *_packedPFCandidateToGenAssociation__BTV",
-        "keep *_trackMCMatch_*_BTV",
-        "keep *_pfDeepCSVJetTags_*_BTV",
-        "keep *_slimmedJets_tagInfos_BTV",
+        "keep recoGenParticles_mergedGenParticles__BTV",
+        "keep recoTracks_generalTracks__BTV",
         "keep *_trackExtenderWithMTD*_generalTrackt0_BTV",
         "keep *_trackExtenderWithMTD*_generalTracksigmat0_BTV",
         "keep *_mtdTrackQualityMVA_mtdQualMVA_BTV",
-        "keep recoJetFlavourInfoMatchingCollection_slimmedGenJetsFlavourInfos__BTV",
-        "keep PileupSummaryInfos_slimmedAddPileupInfo_*_BTV",
-        "keep patElectrons_slimmedElectrons__BTV",
-        "keep patJets_slimmedJets__BTV",
-        "keep patJets_slimmedJetsPuppi__BTV",
-        "keep patMuons_slimmedMuons__BTV",
+        "keep recoPFCandidates_particleFlow__BTV",
         "keep patPackedCandidates_packedPFCandidates__BTV",
-        "keep patPackedGenParticles_packedGenParticles__BTV",
-        "keep recoGenJets_slimmedGenJets__BTV",
-        "keep recoGenParticles_prunedGenParticles__BTV",
-        "keep *_pfImpactParameterTagInfos__BTV",
-        "keep *_pfInclusiveSecondaryVertexFinderTagInfos__BTV",
-        "keep recoTracks_generalTracks__BTV",
+        "keep recoVertexs_offlineSlimmedPrimaryVertices__BTV",
         "keep *_inclusiveVertexFinder_*_BTV",
         "keep *_inclusiveVertexFinderMTDBS_*_BTV",
         "keep *_inclusiveVertexFinderMTDBS4_*_BTV",
         "keep *_inclusiveVertexFinderMTDPV_*_BTV",
-        "keep recoVertexs_offlinePrimaryVertices__BTV",
-        "keep recoVertexs_offlineSlimmedPrimaryVertices__BTV",
-        "keep recoVertexs_offlineSlimmedPrimaryVerticesWithBS__BTV",
         "keep recoVertexCompositePtrCandidates_slimmedSecondaryVertices__BTV",
+        "keep recoGenJets_slimmedGenJets__BTV",
+        "keep patJets_slimmedJets__BTV",
+        "keep recoJetFlavourInfoMatchingCollection_slimmedGenJetsFlavourInfos__BTV",
     ))
     return process
 
@@ -170,12 +146,13 @@ def setOutputFileName(process, fileName):
 
 def dumpDebug(process, debug):
     if debug: open("dumpDebug.py", "w").write(process.dumpPython())
+    return process
 
 
-setMaxEvents(process, 10)
+setMaxEvents(process, -1)
 setOutputFileName(process, "TTToHadronic_noPU_slimmed.root")
-addTrackMCMatching(process)
+addMergedGenParticles(process)
 addMTDTrackTimeExtrapolationToPV(process)
 addMTDToIVF(process)
 dropKeepBranches(process)
-dumpDebug(process, False)
+dumpDebug(process, True)
