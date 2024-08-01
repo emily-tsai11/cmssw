@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 from PhysicsTools.NanoAOD.common_cff import *
 from PhysicsTools.NanoAOD.globalVariablesTableProducer_cfi import globalVariablesTableProducer
 
-from PhysicsTools.NanoAOD.jetsMC_cff import genJetTable
+from PhysicsTools.NanoAOD.jetMC_cff import genJetTable
 
 ##################### User floats producers, selectors ##########################
 
