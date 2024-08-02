@@ -6,8 +6,8 @@ options.register("inputFiles",
   VarParsing.VarParsing.multiplicity.list, VarParsing.VarParsing.varType.string, "Input file(s)")
 options.register("year",        "2016postVFP", VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Dataset year")
 options.register("type",        "mc",          VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Data or mc")
-options.register("maxEvents",   10,           VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int,    "Maximum number of events")
-options.register("reportEvery", 1000,            VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int,    "Report every N events")
+options.register("maxEvents",   100,           VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int,    "Maximum number of events")
+options.register("reportEvery", 10,            VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int,    "Report every N events")
 options.parseArguments()
 
 # Import configuration file
