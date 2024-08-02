@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: NANO --python_filename topNano_v9-1-1_2016ULpostVFP_MC_cfg.py --fileout file:tree.root -s NANO --mc --conditions 106X_mcRun2_asymptotic_v17 --era Run2_2016,run2_nanoAOD_106Xv2 --eventcontent NANOAODSIM --datatier NANOAODSIM --customise_commands=process.add_(cms.Service('InitRootHandlers', EnableIMT = cms.untracked.bool(False)));process.MessageLogger.cerr.FwkReport.reportEvery=1000;process.NANOAODSIMoutput.fakeNameForCrab=cms.untracked.bool(True) --nThreads 2 -n -1 --no_exec
+# with command line options: NANO --python_filename topNano_v9-1-1_2016ULpreVFP_MC_cfg.py --fileout file:tree.root -s NANO --mc --conditions 106X_mcRun2_asymptotic_preVFP_v11 --era Run2_2016,run2_nanoAOD_106Xv2 --eventcontent NANOAODSIM --datatier NANOAODSIM --customise_commands=process.add_(cms.Service('InitRootHandlers', EnableIMT = cms.untracked.bool(False)));process.MessageLogger.cerr.FwkReport.reportEvery=1000;process.NANOAODSIMoutput.fakeNameForCrab=cms.untracked.bool(True) --nThreads 2 -n -1 --no_exec
 
 import FWCore.ParameterSet.Config as cms
 
@@ -29,7 +29,7 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL16MiniAODv2/WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/120000/07A22885-246B-194A-BACD-14A8B1060136.root'),
+    fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL16MiniAODAPVv2/ttHJetToNonbb_M125_TuneCP5_13TeV_amcatnloFXFX_madspin_pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v1/100000/07D7EA21-59F5-1149-B756-F2B3D8B664DD.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -50,7 +50,7 @@ process.NANOAODSIMoutput = cms.OutputModule("NanoAODOutputModule",
         dataTier = cms.untracked.string('NANOAODSIM'),
         filterName = cms.untracked.string('')
     ),
-    fileName = cms.untracked.string('file:2016postVFP_MC.root'),
+    fileName = cms.untracked.string('file:2016preVFP_MC.root'),
     outputCommands = process.NANOAODSIMEventContent.outputCommands
 )
 
@@ -58,7 +58,7 @@ process.NANOAODSIMoutput = cms.OutputModule("NanoAODOutputModule",
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '106X_mcRun2_asymptotic_v17', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '106X_mcRun2_asymptotic_preVFP_v11', '')
 
 # Path and EndPath definitions
 process.nanoAOD_step = cms.Path(process.nanoSequenceMC)

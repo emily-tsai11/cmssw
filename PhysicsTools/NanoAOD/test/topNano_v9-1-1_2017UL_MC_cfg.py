@@ -2,14 +2,14 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: NANO --python_filename topNano_v9-1-1_2016ULpostVFP_MC_cfg.py --fileout file:tree.root -s NANO --mc --conditions 106X_mcRun2_asymptotic_v17 --era Run2_2016,run2_nanoAOD_106Xv2 --eventcontent NANOAODSIM --datatier NANOAODSIM --customise_commands=process.add_(cms.Service('InitRootHandlers', EnableIMT = cms.untracked.bool(False)));process.MessageLogger.cerr.FwkReport.reportEvery=1000;process.NANOAODSIMoutput.fakeNameForCrab=cms.untracked.bool(True) --nThreads 2 -n -1 --no_exec
+# with command line options: NANO --python_filename topNano_v9-1-1_2017UL_MC_cfg.py --fileout file:tree.root -s NANO --mc --conditions 106X_mc2017_realistic_v9 --era Run2_2017,run2_nanoAOD_106Xv2 --eventcontent NANOAODSIM --datatier NANOAODSIM --customise_commands=process.add_(cms.Service('InitRootHandlers', EnableIMT = cms.untracked.bool(False)));process.MessageLogger.cerr.FwkReport.reportEvery=1000;process.NANOAODSIMoutput.fakeNameForCrab=cms.untracked.bool(True) --nThreads 2 -n -1 --no_exec
 
 import FWCore.ParameterSet.Config as cms
 
-from Configuration.Eras.Era_Run2_2016_cff import Run2_2016
+from Configuration.Eras.Era_Run2_2017_cff import Run2_2017
 from Configuration.Eras.Modifier_run2_nanoAOD_106Xv2_cff import run2_nanoAOD_106Xv2
 
-process = cms.Process('NANO',Run2_2016,run2_nanoAOD_106Xv2)
+process = cms.Process('NANO',Run2_2017,run2_nanoAOD_106Xv2)
 
 # Import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -29,7 +29,7 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL16MiniAODv2/WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/120000/07A22885-246B-194A-BACD-14A8B1060136.root'),
+    fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL17MiniAODv2/ttHJetToNonbb_M125_TuneCP5_13TeV_amcatnloFXFX_madspin_pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/110000/046DCC82-1500-7E49-B47E-66E041AD001D.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -50,7 +50,7 @@ process.NANOAODSIMoutput = cms.OutputModule("NanoAODOutputModule",
         dataTier = cms.untracked.string('NANOAODSIM'),
         filterName = cms.untracked.string('')
     ),
-    fileName = cms.untracked.string('file:2016postVFP_MC.root'),
+    fileName = cms.untracked.string('file:2017_MC.root'),
     outputCommands = process.NANOAODSIMEventContent.outputCommands
 )
 
@@ -58,7 +58,7 @@ process.NANOAODSIMoutput = cms.OutputModule("NanoAODOutputModule",
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '106X_mcRun2_asymptotic_v17', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '106X_mc2017_realistic_v9', '')
 
 # Path and EndPath definitions
 process.nanoAOD_step = cms.Path(process.nanoSequenceMC)
