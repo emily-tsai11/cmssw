@@ -1,7 +1,7 @@
 source submit_function.sh
 
 submitBatch() {
-  cat $YEAR\_$TYPE.list | while read LINE 
+  cat ${YEAR}_${TYPE}.list | while read LINE 
   do
     OPTS=($LINE)
     DATASET=${OPTS[0]}
