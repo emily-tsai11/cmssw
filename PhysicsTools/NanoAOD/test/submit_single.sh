@@ -1,0 +1,7 @@
+source submit_function.sh
+YEAR=2016postVFP
+TYPE=mc
+CFG=/eos/user/e/etsai/workspace/TopLFV_ReNano_CMSSW_13_2_2/src/PhysicsTools/NanoAOD/test/topNano_v9_1_1_2016ULpostVFP_MC_cfg.py
+DATASET=/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM
+SAMPLE=DYM10to50
+submitDataset

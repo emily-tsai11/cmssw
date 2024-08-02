@@ -13,16 +13,24 @@ cmsrel CMSSW_13_2_2
 cd CMSSW_13_2_2/src
 cmsenv
 git cms-init
-git clone git@github.com:emily-tsai11/cmssw.git -b 1322_TopLFVReNano
+git clone --recurse-submodules --remote-submodules git@github.com:emily-tsai11/cmssw.git -b 1322_TopLFVReNano
 scram b -j
 ```
 
-## To run
-To run the default file(s), a working grid certificate is required.
+## To run locally
+To run the default file, a working grid certificate is required.
 ```
 cd PhysicsTools/NanoAOD/test
 cmsRun modify_cfg.py
 ```
 
 ## To submit crab jobs
-Dataset names are listed in the `.list` files.
+To submit a single dataset, use:
+```
+./submit_single.py
+```
+To submit all datasets, use:
+```
+./submit_batch.py
+```
+Datasets are listed in the `.list` files.
