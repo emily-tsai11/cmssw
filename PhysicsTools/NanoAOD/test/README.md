@@ -34,3 +34,9 @@ To submit all datasets, use:
 ./submit_batch.py
 ```
 Datasets are listed in the `.list` files.
+
+## To update submodules
+```
+cd CMSSW_13_2_2/src
+git submodule update --remote
+```

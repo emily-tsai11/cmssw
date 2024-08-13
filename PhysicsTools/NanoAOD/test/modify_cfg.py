@@ -2,7 +2,7 @@
 import FWCore.ParameterSet.VarParsing as VarParsing
 options = VarParsing.VarParsing()
 options.register("inputFiles",
-  "root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL16MiniAODv2/WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/120000/07A22885-246B-194A-BACD-14A8B1060136.root",
+  "root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL16MiniAODv2/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/120000/01572CA8-C7AE-0346-B660-8AB4F7C2AE36.root",
   VarParsing.VarParsing.multiplicity.list, VarParsing.VarParsing.varType.string, "Input file(s)")
 options.register("year",        "2016postVFP", VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Dataset year")
 options.register("type",        "mc",          VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Data or mc")
@@ -13,12 +13,12 @@ options.parseArguments()
 # Import configuration file
 print("Era is %s and dataset type is %s" % (options.year, options.type))
 if options.year=="2016postVFP":
-    if options.type=="data": from topNano_v9_1_1_2016UL_data_cfg import *
-    elif options.type=="mc": from topNano_v9_1_1_2016ULpostVFP_MC_cfg import *
+    if options.type=="data": from topNano_v9_1_1_2016postVFPUL_data_cfg import *
+    elif options.type=="mc": from topNano_v9_1_1_2016postVFPUL_MC_cfg import *
     else: print("Incorrect type specified.")
 elif options.year=="2016preVFP":
-    if options.type=="data": from topNano_v9_1_1_2016UL_data_cfg import *
-    elif options.type=="mc": from topNano_v9_1_1_2016ULpreVFP_MC_cfg import *
+    if options.type=="data": from topNano_v9_1_1_2016preVFPUL_data_cfg import *
+    elif options.type=="mc": from topNano_v9_1_1_2016preVFPUL_MC_cfg import *
     else: print("Incorrect type specified.")
 elif options.year=="2017":
     if options.type=="data": from topNano_v9_1_1_2017UL_data_cfg import *
