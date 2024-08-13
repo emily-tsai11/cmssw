@@ -1,0 +1,3 @@
+[submodule "PhysicsTools/NanoAODTools"]
+	path = PhysicsTools/NanoAODTools
+	url = git@github.com:emily-tsai11/nanoAOD-tools.git
