@@ -289,6 +289,35 @@ run2_egamma_2016.toModify(
 )
 ################################################electronMVATTH end#####################
 
+################################################electronTopLeptonMVA#####################
+# For Run 2 UL only
+electronTopLeptonMVAID = cms.EDProducer("EleTopLeptonMVAIDProducer",
+    src = cms.InputTag("linkedObjects", "electrons"),
+    # weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPUL18_XGB.weights.bin"),
+    # weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv2UL18_XGB.weights.bin"),
+)
+# (Run2_2016 & tracker_apv_vfp30_2016).toModify(
+#     electronTopLeptonMVAID,
+#     weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPUL16APV_XGB.weights.bin",
+#     weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL16APV_XGB.weights.bin",
+# )
+# (Run2_2016 & ~tracker_apv_vfp30_2016).toModify(
+#     electronTopLeptonMVAID,
+#     weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPUL16_XGB.weights.bin",
+#     weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL16_XGB.weights.bin",
+# )
+# Run2_2017.toModify(
+#     electronTopLeptonMVAID,
+#     weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPUL17_XGB.weights.bin",
+#     weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL17_XGB.weights.bin",
+# )
+# Run2_2018.toModify(
+#     electronTopLeptonMVAID,
+#     weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPUL18_XGB.weights.bin",
+#     weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL18_XGB.weights.bin",
+# )
+################################################electronTopLeptonMVA end#####################
+
 ################################################electronTable defn #####################
 electronTable = simpleCandidateFlatTableProducer.clone(
     src = cms.InputTag("linkedObjects","electrons"),
@@ -360,6 +389,8 @@ electronTable = simpleCandidateFlatTableProducer.clone(
     ),
     externalVariables = cms.PSet(
         mvaTTH = ExtVar(cms.InputTag("electronMVATTH"),float, doc="TTH MVA lepton ID score",precision=14),
+        topLeptonMVAIDv1 = ExtVar(cms.InputTag("electronTopLeptonMVAID:v1"), float, doc="top lepton MVA ID v1 lepton score", precision=14),
+        topLeptonMVAIDv2 = ExtVar(cms.InputTag("electronTopLeptonMVAID:v2"), float, doc="top lepton MVA ID v2 lepton score", precision=14),
         fsrPhotonIdx = ExtVar(cms.InputTag("leptonFSRphotons:eleFsrIndex"), "int16", doc="Index of the lowest-dR/ET2 among associated FSR photons"),
     ),
 )
@@ -457,7 +488,7 @@ electronMCTable = cms.EDProducer("CandMCMatchTableProducer",
 )
 
 electronTask = cms.Task(bitmapVIDForEle,bitmapVIDForEleFall17V2,bitmapVIDForEleHEEP,isoForEle,isoForEleFall17V2,ptRatioRelForEle,seedGainEle,calibratedPatElectronsNano,slimmedElectronsWithUserData,finalElectrons)
-electronTablesTask = cms.Task(electronMVATTH, electronTable)
+electronTablesTask = cms.Task(electronMVATTH, electronTopLeptonMVAID, electronTable)
 electronMCTask = cms.Task(tautaggerForMatching, matchingElecPhoton, electronsMCMatchForTable, electronsMCMatchForTableAlt, electronMCTable)
 
 _electronTask_Run2 = electronTask.copy()
