@@ -2,7 +2,10 @@
 import FWCore.ParameterSet.VarParsing as VarParsing
 options = VarParsing.VarParsing()
 options.register("inputFiles",
-  "root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL16MiniAODv2/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/120000/01572CA8-C7AE-0346-B660-8AB4F7C2AE36.root",
+  "root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL16MiniAODv2/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/120000/038D9F5E-C340-FD45-B613-DD495181C237.root",
+  # "root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL16MiniAODv2/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/120000/01572CA8-C7AE-0346-B660-8AB4F7C2AE36.root",
+  # "root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL16MiniAODv2/TTWJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/120000/25FA4D2D-50C4-514A-96B6-3E1CF8E26C1F.root",
+  # "root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL16MiniAODv2/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/2520000/23D5FD62-3247-F643-849F-85A5E9A31297.root",
   VarParsing.VarParsing.multiplicity.list, VarParsing.VarParsing.varType.string, "Input file(s)")
 options.register("year",        "2016postVFP", VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Dataset year")
 options.register("type",        "mc",          VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Data or mc")
