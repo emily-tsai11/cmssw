@@ -290,32 +290,46 @@ run2_egamma_2016.toModify(
 ################################################electronMVATTH end#####################
 
 ################################################electronTopLeptonMVA#####################
-# For Run 2 UL only
+# For Run 2 UL only, randomly chose 2018 as default
+feat_v1 = ["pt", "absEta", "jetNDauCharged", "miniPFRelIso_chg", "miniPFRelIso_neu", "jetPtRelv2",
+        "jetPtRatio", "pfRelIso03_all", "jetBTag", "sip3d", "dxy", "dz", "mvaNoIso"]
+feat_v2 = ["pt", "absEta", "jetNDauCharged", "miniPFRelIso_chg", "miniPFRelIso_neu", "jetPtRelv2",
+        "jetPtRatio", "pfRelIso03_all", "jetBTag", "sip3d", "dxy", "dz", "mvaNoIso", "lostHits"]
 electronTopLeptonMVAID = cms.EDProducer("EleTopLeptonMVAIDProducer",
     src = cms.InputTag("linkedObjects", "electrons"),
-    # weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPUL18_XGB.weights.bin"),
-    # weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv2UL18_XGB.weights.bin"),
+    weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv1UL18_XGB.weights.json"),
+    weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv2UL18_XGB.weights.json"),
+    features_v1 = cms.vstring(feat_v1),
+    features_v2 = cms.vstring(feat_v2),
 )
-# (Run2_2016 & tracker_apv_vfp30_2016).toModify(
-#     electronTopLeptonMVAID,
-#     weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPUL16APV_XGB.weights.bin",
-#     weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL16APV_XGB.weights.bin",
-# )
-# (Run2_2016 & ~tracker_apv_vfp30_2016).toModify(
-#     electronTopLeptonMVAID,
-#     weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPUL16_XGB.weights.bin",
-#     weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL16_XGB.weights.bin",
-# )
-# Run2_2017.toModify(
-#     electronTopLeptonMVAID,
-#     weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPUL17_XGB.weights.bin",
-#     weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL17_XGB.weights.bin",
-# )
-# Run2_2018.toModify(
-#     electronTopLeptonMVAID,
-#     weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPUL18_XGB.weights.bin",
-#     weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL18_XGB.weights.bin",
-# )
+(run2_egamma_2016 & tracker_apv_vfp30_2016).toModify(
+    electronTopLeptonMVAID,
+    weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPv1UL16APV_XGB.weights.json",
+    weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL16APV_XGB.weights.json",
+    features_v1 = cms.vstring(feat_v1),
+    features_v2 = cms.vstring(feat_v2),
+)
+(run2_egamma_2016 & ~tracker_apv_vfp30_2016).toModify(
+    electronTopLeptonMVAID,
+    weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPv1UL16_XGB.weights.json",
+    weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL16_XGB.weights.json",
+    features_v1 = cms.vstring(feat_v1),
+    features_v2 = cms.vstring(feat_v2),
+)
+run2_egamma_2017.toModify(
+    electronTopLeptonMVAID,
+    weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPv1UL17_XGB.weights.json",
+    weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL17_XGB.weights.json",
+    features_v1 = cms.vstring(feat_v1),
+    features_v2 = cms.vstring(feat_v2),
+)
+run2_egamma_2018.toModify(
+    electronTopLeptonMVAID,
+    weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPv1UL18_XGB.weights.json",
+    weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL18_XGB.weights.json",
+    features_v1 = cms.vstring(feat_v1),
+    features_v2 = cms.vstring(feat_v2),
+)
 ################################################electronTopLeptonMVA end#####################
 
 ################################################electronTable defn #####################

@@ -109,32 +109,44 @@ muonMVATTH= cms.EDProducer("MuonBaseMVAValueMapProducer",
     )
 )
 
-# For Run 2 UL only
+# For Run 2 UL only, randomly chose 2018 as default
+feat = ["pt", "absEta", "jetNDauCharged", "miniPFRelIso_chg", "miniPFRelIso_neu", "jetPtRelv2",
+        "jetPtRatio", "pfRelIso03_all", "jetBTag", "sip3d", "dxy", "dz", "segmentComp"]
 muonTopLeptonMVAID = cms.EDProducer("MuTopLeptonMVAIDProducer",
     src = cms.InputTag("linkedObjects", "muons"),
-    # weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPUL18_XGB.weights.bin"),
-    # weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv2UL18_XGB.weights.bin"),
+    weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv1UL18_XGB.weights.json"),
+    weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv2UL18_XGB.weights.json"),
+    features_v1 = cms.vstring(feat),
+    features_v2 = cms.vstring(feat),
 )
-# (Run2_2016 & tracker_apv_vfp30_2016).toModify(
-#     muonTopLeptonMVAID,
-#     weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPUL16APV_XGB.weights.bin",
-#     weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL16APV_XGB.weights.bin",
-# )
-# (Run2_2016 & ~tracker_apv_vfp30_2016).toModify(
-#     muonTopLeptonMVAID,
-#     weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPUL16_XGB.weights.bin",
-#     weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL16_XGB.weights.bin",
-# )
-# Run2_2017.toModify(
-#     muonTopLeptonMVAID,
-#     weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPUL17_XGB.weights.bin",
-#     weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL17_XGB.weights.bin",
-# )
-# Run2_2018.toModify(
-#     muonTopLeptonMVAID,
-#     weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPUL18_XGB.weights.bin",
-#     weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL18_XGB.weights.bin",
-# )
+(run2_muon_2016 & tracker_apv_vfp30_2016).toModify(
+    muonTopLeptonMVAID,
+    weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPv1UL16APV_XGB.weights.json",
+    weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL16APV_XGB.weights.json",
+    features_v1 = cms.vstring(feat),
+    features_v2 = cms.vstring(feat),
+)
+(run2_muon_2016 & ~tracker_apv_vfp30_2016).toModify(
+    muonTopLeptonMVAID,
+    weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPv1UL16_XGB.weights.json",
+    weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL16_XGB.weights.json",
+    features_v1 = cms.vstring(feat),
+    features_v2 = cms.vstring(feat),
+)
+run2_muon_2017.toModify(
+    muonTopLeptonMVAID,
+    weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPv1UL17_XGB.weights.json",
+    weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL17_XGB.weights.json",
+    features_v1 = cms.vstring(feat),
+    features_v2 = cms.vstring(feat),
+)
+run2_muon_2018.toModify(
+    muonTopLeptonMVAID,
+    weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPv1UL18_XGB.weights.json",
+    weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL18_XGB.weights.json",
+    features_v1 = cms.vstring(feat),
+    features_v2 = cms.vstring(feat),
+)
 
 muonMVALowPt = muonMVATTH.clone(
     weightFile =  cms.FileInPath("PhysicsTools/NanoAOD/data/mu_BDTG_lowpt.weights.xml"),

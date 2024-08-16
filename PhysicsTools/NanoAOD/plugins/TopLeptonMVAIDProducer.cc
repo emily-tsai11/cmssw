@@ -41,10 +41,12 @@ class TopLeptonMVAIDProducer : public edm::stream::EDProducer<> {
 public:
   explicit TopLeptonMVAIDProducer(const edm::ParameterSet& iConfig) :
       src_(consumes<edm::View<T>>(iConfig.getParameter<edm::InputTag>("src"))) {
-      // weights_v1_,
-      // weights_v2_ {
     produces<edm::ValueMap<float>>("v1");
     produces<edm::ValueMap<float>>("v2");
+    weights_v1_ = iConfig.getParameter<edm::FileInPath>("weights_v1");
+    weights_v2_ = iConfig.getParameter<edm::FileInPath>("weights_v2");
+    features_v1_ = iConfig.getParameter<std::vector<std::string>>("features_v1");
+    features_v2_ = iConfig.getParameter<std::vector<std::string>>("features_v2");
   }
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
@@ -55,8 +57,10 @@ private:
 
   // ----------member data ---------------------------
   edm::EDGetTokenT<edm::View<T>> src_;
-  // weight file v1
-  // weight file v2
+  edm::FileInPath weights_v1_;
+  edm::FileInPath weights_v2_;
+  std::vector<std::string> features_v1_;
+  std::vector<std::string> features_v2_;
 };
 
 // ------------ method called to produce the data  ------------
@@ -130,8 +134,10 @@ template <typename T>
 void TopLeptonMVAIDProducer<T>::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
   desc.add<edm::InputTag>("src")->setComment("input physics object (lepton) collection");
-  // desc.add<edm::FileInPath>("weights_v1")->setComment("xgboost file containing weights for v1");
-  // desc.add<edm::FileInPath>("weights_v2")->setComment("xgboost file containing weights for v2");
+  desc.add<edm::FileInPath>("weights_v1")->setComment("json file containing weights for v1");
+  desc.add<edm::FileInPath>("weights_v2")->setComment("json file containing weights for v2");
+  desc.add<std::vector<std::string>>("features_v1")->setComment("features for v1");
+  desc.add<std::vector<std::string>>("features_v2")->setComment("features for v2");
 
   std::string prodname;
   if (typeid(T) == typeid(pat::Muon))
