@@ -295,7 +295,7 @@ feat_v1 = ["pt", "absEta", "jetNDauCharged", "miniPFRelIso_chg", "miniPFRelIso_n
         "jetPtRatio", "pfRelIso03_all", "jetBTag", "sip3d", "dxy", "dz", "mvaNoIso"]
 feat_v2 = ["pt", "absEta", "jetNDauCharged", "miniPFRelIso_chg", "miniPFRelIso_neu", "jetPtRelv2",
         "jetPtRatio", "pfRelIso03_all", "jetBTag", "sip3d", "dxy", "dz", "mvaNoIso", "lostHits"]
-electronTopLeptonMVAID = cms.EDProducer("EleTopLeptonMVAIDProducer",
+electronTopLeptonMVA = cms.EDProducer("EleTopLeptonMVAProducer",
     leptons = cms.InputTag("linkedObjects", "electrons"),
     jets = cms.InputTag("updatedJetsPuppi"),
     weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv1UL16_XGB_v1.0.0_weights.bin"),
@@ -304,28 +304,28 @@ electronTopLeptonMVAID = cms.EDProducer("EleTopLeptonMVAIDProducer",
     features_v2 = cms.vstring(feat_v2),
 )
 (run2_egamma_2016 & tracker_apv_vfp30_2016).toModify(
-    electronTopLeptonMVAID,
+    electronTopLeptonMVA,
     weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPv1UL16APV_XGB_v1.0.0_weights.bin",
     weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL16APV_XGB_v1.0.0_weights.bin",
     features_v1 = cms.vstring(feat_v1),
     features_v2 = cms.vstring(feat_v2),
 )
 (run2_egamma_2016 & ~tracker_apv_vfp30_2016).toModify(
-    electronTopLeptonMVAID,
+    electronTopLeptonMVA,
     weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPv1UL16_XGB_v1.0.0_weights.bin",
     weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL16_XGB_v1.0.0_weights.bin",
     features_v1 = cms.vstring(feat_v1),
     features_v2 = cms.vstring(feat_v2),
 )
 run2_egamma_2017.toModify(
-    electronTopLeptonMVAID,
+    electronTopLeptonMVA,
     weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPv1UL17_XGB_v1.0.0_weights.bin",
     weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL17_XGB_v1.0.0_weights.bin",
     features_v1 = cms.vstring(feat_v1),
     features_v2 = cms.vstring(feat_v2),
 )
 run2_egamma_2018.toModify(
-    electronTopLeptonMVAID,
+    electronTopLeptonMVA,
     weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPv1UL18_XGB_v1.0.0_weights.bin",
     weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL18_XGB_v1.0.0_weights.bin",
     features_v1 = cms.vstring(feat_v1),
@@ -404,8 +404,10 @@ electronTable = simpleCandidateFlatTableProducer.clone(
     ),
     externalVariables = cms.PSet(
         mvaTTH = ExtVar(cms.InputTag("electronMVATTH"),float, doc="TTH MVA lepton ID score",precision=14),
-        topLeptonMVAIDv1 = ExtVar(cms.InputTag("electronTopLeptonMVAID:v1"), float, doc="top lepton MVA ID v1 lepton score", precision=14),
-        topLeptonMVAIDv2 = ExtVar(cms.InputTag("electronTopLeptonMVAID:v2"), float, doc="top lepton MVA ID v2 lepton score", precision=14),
+        rawTopLeptonMVAv1 = ExtVar(cms.InputTag("electronTopLeptonMVA:RAWv1"), float, doc="top lepton MVA v1 electron score", precision=14),
+        rawTopLeptonMVAv2 = ExtVar(cms.InputTag("electronTopLeptonMVA:RAWv2"), float, doc="top lepton MVA v2 electron score", precision=14),
+        idTopLeptonMVAv1 = ExtVar(cms.InputTag("electronTopLeptonMVA:WPv1"), int, doc="top lepton MVA v1 electron working point"),
+        idTopLeptonMVAv2 = ExtVar(cms.InputTag("electronTopLeptonMVA:WPv2"), int, doc="top lepton MVA v2 electron working point"),
         fsrPhotonIdx = ExtVar(cms.InputTag("leptonFSRphotons:eleFsrIndex"), "int16", doc="Index of the lowest-dR/ET2 among associated FSR photons"),
     ),
 )
@@ -503,7 +505,7 @@ electronMCTable = cms.EDProducer("CandMCMatchTableProducer",
 )
 
 electronTask = cms.Task(bitmapVIDForEle,bitmapVIDForEleFall17V2,bitmapVIDForEleHEEP,isoForEle,isoForEleFall17V2,ptRatioRelForEle,seedGainEle,calibratedPatElectronsNano,slimmedElectronsWithUserData,finalElectrons)
-electronTablesTask = cms.Task(electronMVATTH, electronTopLeptonMVAID, electronTable)
+electronTablesTask = cms.Task(electronMVATTH, electronTopLeptonMVA, electronTable)
 electronMCTask = cms.Task(tautaggerForMatching, matchingElecPhoton, electronsMCMatchForTable, electronsMCMatchForTableAlt, electronMCTable)
 
 _electronTask_Run2 = electronTask.copy()

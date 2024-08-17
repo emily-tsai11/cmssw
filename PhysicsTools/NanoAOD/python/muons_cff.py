@@ -112,7 +112,7 @@ muonMVATTH= cms.EDProducer("MuonBaseMVAValueMapProducer",
 # For Run 2 UL only, randomly chose 2016 as default
 feat = ["pt", "absEta", "jetNDauCharged", "miniPFRelIso_chg", "miniPFRelIso_neu", "jetPtRelv2",
         "jetPtRatio", "pfRelIso03_all", "jetBTag", "sip3d", "dxy", "dz", "segmentComp"]
-muonTopLeptonMVAID = cms.EDProducer("MuTopLeptonMVAIDProducer",
+muonTopLeptonMVA = cms.EDProducer("MuTopLeptonMVAProducer",
     leptons = cms.InputTag("linkedObjects", "muons"),
     jets = cms.InputTag("updatedJetsPuppi"),
     weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv1UL16_XGB_v1.0.0_weights.bin"),
@@ -121,28 +121,28 @@ muonTopLeptonMVAID = cms.EDProducer("MuTopLeptonMVAIDProducer",
     features_v2 = cms.vstring(feat),
 )
 (run2_muon_2016 & tracker_apv_vfp30_2016).toModify(
-    muonTopLeptonMVAID,
+    muonTopLeptonMVA,
     weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPv1UL16APV_XGB_v1.0.0_weights.bin",
     weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL16APV_XGB_v1.0.0_weights.bin",
     features_v1 = cms.vstring(feat),
     features_v2 = cms.vstring(feat),
 )
 (run2_muon_2016 & ~tracker_apv_vfp30_2016).toModify(
-    muonTopLeptonMVAID,
+    muonTopLeptonMVA,
     weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPv1UL16_XGB_v1.0.0_weights.bin",
     weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL16_XGB_v1.0.0_weights.bin",
     features_v1 = cms.vstring(feat),
     features_v2 = cms.vstring(feat),
 )
 run2_muon_2017.toModify(
-    muonTopLeptonMVAID,
+    muonTopLeptonMVA,
     weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPv1UL17_XGB_v1.0.0_weights.bin",
     weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL17_XGB_v1.0.0_weights.bin",
     features_v1 = cms.vstring(feat),
     features_v2 = cms.vstring(feat),
 )
 run2_muon_2018.toModify(
-    muonTopLeptonMVAID,
+    muonTopLeptonMVA,
     weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPv1UL18_XGB_v1.0.0_weights.bin",
     weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL18_XGB_v1.0.0_weights.bin",
     features_v1 = cms.vstring(feat),
@@ -213,8 +213,10 @@ muonTable = simpleCandidateFlatTableProducer.clone(
         ),
     externalVariables = cms.PSet(
         mvaTTH = ExtVar(cms.InputTag("muonMVATTH"),float, doc="TTH MVA lepton ID score",precision=14),
-        topLeptonMVAIDv1 = ExtVar(cms.InputTag("muonTopLeptonMVAID:v1"), float, doc="top lepton MVA ID v1 lepton score", precision=14),
-        topLeptonMVAIDv2 = ExtVar(cms.InputTag("muonTopLeptonMVAID:v2"), float, doc="top lepton MVA ID v2 lepton score", precision=14),
+        rawTopLeptonMVAv1 = ExtVar(cms.InputTag("muonTopLeptonMVA:RAWv1"), float, doc="top lepton MVA v1 muon score", precision=14),
+        rawTopLeptonMVAv2 = ExtVar(cms.InputTag("muonTopLeptonMVA:RAWv2"), float, doc="top lepton MVA v2 muon score", precision=14),
+        idTopLeptonMVAv1 = ExtVar(cms.InputTag("muonTopLeptonMVA:WPv1"), int, doc="top lepton MVA v1 muon working point"),
+        idTopLeptonMVAv2 = ExtVar(cms.InputTag("muonTopLeptonMVA:WPv2"), int, doc="top lepton MVA v2 muon working point"),
         mvaLowPt = ExtVar(cms.InputTag("muonMVALowPt"),float, doc="Low pt muon ID score",precision=14),
         fsrPhotonIdx = ExtVar(cms.InputTag("leptonFSRphotons:muFsrIndex"), "int16", doc="Index of the lowest-dR/ET2 among associated FSR photons"),
     ),
@@ -254,7 +256,7 @@ muonMCTable = cms.EDProducer("CandMCMatchTableProducer",
 
 muonTask = cms.Task(slimmedMuonsUpdated,isoForMu,ptRatioRelForMu,slimmedMuonsWithUserData,finalMuons,finalLooseMuons )
 muonMCTask = cms.Task(muonsMCMatchForTable,muonMCTable)
-muonTablesTask = cms.Task(muonMVATTH,muonTopLeptonMVAID,muonMVALowPt,muonTable,muonMVAID)
+muonTablesTask = cms.Task(muonMVATTH,muonTopLeptonMVA,muonMVALowPt,muonTable,muonMVAID)
 
 
 

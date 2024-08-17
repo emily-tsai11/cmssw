@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
-// Package:    PhysicsTools/TopLeptonMVAIDProducer
-// Class:      TopLeptonMVAIDProducer
+// Package:    PhysicsTools/TopLeptonMVAProducer
+// Class:      TopLeptonMVAProducer
 //
-/**\class TopLeptonMVAIDProducer TopLeptonMVAIDProducer.cc PhysicsTools/TopLeptonMVAIDProducer/plugins/TopLeptonMVAIDProducer.cc
+/**\class TopLeptonMVAProducer TopLeptonMVAProducer.cc PhysicsTools/TopLeptonMVAProducer/plugins/TopLeptonMVAProducer.cc
 
  Description: Producer for Top Lepton MVA ID in Run 2 UL data/MC
 
@@ -40,13 +40,16 @@
 // class declaration
 //
 template <class T>
-class TopLeptonMVAIDProducer : public edm::stream::EDProducer<> {
+class TopLeptonMVAProducer : public edm::stream::EDProducer<> {
 public:
-  explicit TopLeptonMVAIDProducer(const edm::ParameterSet& iConfig) :
+  explicit TopLeptonMVAProducer(const edm::ParameterSet& iConfig) :
       leptons_(consumes<edm::View<T>>(iConfig.getParameter<edm::InputTag>("leptons"))),
       jets_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jets"))) {
-    produces<edm::ValueMap<float>>("v1");
-    produces<edm::ValueMap<float>>("v2");
+
+    produces<edm::ValueMap<float>>("RAWv1");
+    produces<edm::ValueMap<float>>("RAWv2");
+    produces<edm::ValueMap<int>>("WPv1");
+    produces<edm::ValueMap<int>>("WPv2");
 
     weights_v1_ = iConfig.getParameter<edm::FileInPath>("weights_v1");
     weights_v2_ = iConfig.getParameter<edm::FileInPath>("weights_v2");
@@ -58,6 +61,7 @@ public:
     XGBoosterLoadModel(booster_v1_, weights_v1_.fullPath().c_str());
     XGBoosterLoadModel(booster_v2_, weights_v2_.fullPath().c_str());
   }
+
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 private:
@@ -78,79 +82,115 @@ private:
 
 // ------------ method called to produce the data  ------------
 template <typename T>
-void TopLeptonMVAIDProducer<T>::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void TopLeptonMVAProducer<T>::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
   if ((typeid(T) == typeid(pat::Electron))) getMVAEle(iEvent);
   else if ((typeid(T) == typeid(pat::Muon))) getMVAMu(iEvent);
 }
 
 template <>
-void TopLeptonMVAIDProducer<pat::Electron>::getMVAEle(edm::Event& iEvent) const {
-  edm::Handle<edm::View<pat::Electron>> leptons;
+void TopLeptonMVAProducer<pat::Electron>::getMVAEle(edm::Event& iEvent) const {
+  edm::Handle<edm::View<pat::Electron>> electrons;
   edm::Handle<edm::View<pat::Jet>> jets;
-  iEvent.getByToken(leptons_, leptons);
+  iEvent.getByToken(leptons_, electrons);
   iEvent.getByToken(jets_, jets);
 
   std::vector<float> MVAv1;
   std::vector<float> MVAv2;
-  MVAv1.reserve(leptons->size());
-  MVAv2.reserve(leptons->size());
+  std::vector<int> WPv1;
+  std::vector<int> WPv2;
+  MVAv1.reserve(electrons->size());
+  MVAv2.reserve(electrons->size());
+  WPv1.reserve(electrons->size());
+  WPv2.reserve(electrons->size());
 
-  for (unsigned int i = 0; i < leptons->size(); i++) MVAv1.push_back(0.1*(float)i);
-  for (unsigned int i = 0; i < leptons->size(); i++) MVAv2.push_back(0.2*(float)i);
+  for (unsigned int i = 0; i < electrons->size(); i++) {
+    MVAv1.push_back(0.1*(float)i);
+    MVAv2.push_back(0.2*(float)i);
+    WPv1.push_back(i);
+    WPv2.push_back(i*2);
+  }
 
   auto MVAv1_out = std::make_unique<edm::ValueMap<float>>();
-  edm::ValueMap<float>::Filler filler_v1(*MVAv1_out);
-  filler_v1.insert(leptons, MVAv1.begin(), MVAv1.end());
-  filler_v1.fill();
+  edm::ValueMap<float>::Filler MVAv1_filler(*MVAv1_out);
+  MVAv1_filler.insert(electrons, MVAv1.begin(), MVAv1.end());
+  MVAv1_filler.fill();
   auto MVAv2_out = std::make_unique<edm::ValueMap<float>>();
-  edm::ValueMap<float>::Filler filler_v2(*MVAv2_out);
-  filler_v2.insert(leptons, MVAv2.begin(), MVAv2.end());
-  filler_v2.fill();
+  edm::ValueMap<float>::Filler MVAv2_filler(*MVAv2_out);
+  MVAv2_filler.insert(electrons, MVAv2.begin(), MVAv2.end());
+  MVAv2_filler.fill();
+  auto WPv1_out = std::make_unique<edm::ValueMap<int>>();
+  edm::ValueMap<int>::Filler WPv1_filler(*WPv1_out);
+  WPv1_filler.insert(electrons, WPv1.begin(), WPv1.end());
+  WPv1_filler.fill();
+  auto WPv2_out = std::make_unique<edm::ValueMap<int>>();
+  edm::ValueMap<int>::Filler WPv2_filler(*WPv2_out);
+  WPv2_filler.insert(electrons, WPv2.begin(), WPv2.end());
+  WPv2_filler.fill();
 
-  iEvent.put(std::move(MVAv1_out), "v1");
-  iEvent.put(std::move(MVAv2_out), "v2");
+  iEvent.put(std::move(MVAv1_out), "RAWv1");
+  iEvent.put(std::move(MVAv2_out), "RAWv2");
+  iEvent.put(std::move(WPv1_out), "WPv1");
+  iEvent.put(std::move(WPv2_out), "WPv2");
 }
 
 template <>
-void TopLeptonMVAIDProducer<pat::Muon>::getMVAMu(edm::Event& iEvent) const {
-  edm::Handle<edm::View<pat::Muon>> leptons;
+void TopLeptonMVAProducer<pat::Muon>::getMVAMu(edm::Event& iEvent) const {
+  edm::Handle<edm::View<pat::Muon>> muons;
   edm::Handle<edm::View<pat::Jet>> jets;
-  iEvent.getByToken(leptons_, leptons);
+  iEvent.getByToken(leptons_, muons);
   iEvent.getByToken(jets_, jets);
 
   std::vector<float> MVAv1;
   std::vector<float> MVAv2;
-  MVAv1.reserve(leptons->size());
-  MVAv2.reserve(leptons->size());
+  std::vector<int> WPv1;
+  std::vector<int> WPv2;
+  MVAv1.reserve(muons->size());
+  MVAv2.reserve(muons->size());
+  WPv1.reserve(muons->size());
+  WPv2.reserve(muons->size());
 
-  for (unsigned int i = 0; i < leptons->size(); i++) MVAv1.push_back(0.3*(float)i);
-  for (unsigned int i = 0; i < leptons->size(); i++) MVAv2.push_back(0.4*(float)i);
+  for (unsigned int i = 0; i < muons->size(); i++) {
+    MVAv1.push_back(0.3*(float)i);
+    MVAv2.push_back(0.4*(float)i);
+    WPv1.push_back(3*i);
+    WPv2.push_back(4*i);
+  }
 
   auto MVAv1_out = std::make_unique<edm::ValueMap<float>>();
-  edm::ValueMap<float>::Filler filler_v1(*MVAv1_out);
-  filler_v1.insert(leptons, MVAv1.begin(), MVAv1.end());
-  filler_v1.fill();
+  edm::ValueMap<float>::Filler MVAv1_filler(*MVAv1_out);
+  MVAv1_filler.insert(muons, MVAv1.begin(), MVAv1.end());
+  MVAv1_filler.fill();
   auto MVAv2_out = std::make_unique<edm::ValueMap<float>>();
-  edm::ValueMap<float>::Filler filler_v2(*MVAv2_out);
-  filler_v2.insert(leptons, MVAv2.begin(), MVAv2.end());
-  filler_v2.fill();
+  edm::ValueMap<float>::Filler MVAv2_filler(*MVAv2_out);
+  MVAv2_filler.insert(muons, MVAv2.begin(), MVAv2.end());
+  MVAv2_filler.fill();
+  auto WPv1_out = std::make_unique<edm::ValueMap<int>>();
+  edm::ValueMap<int>::Filler WPv1_filler(*WPv1_out);
+  WPv1_filler.insert(muons, WPv1.begin(), WPv1.end());
+  WPv1_filler.fill();
+  auto WPv2_out = std::make_unique<edm::ValueMap<int>>();
+  edm::ValueMap<int>::Filler WPv2_filler(*WPv2_out);
+  WPv2_filler.insert(muons, WPv2.begin(), WPv2.end());
+  WPv2_filler.fill();
 
-  iEvent.put(std::move(MVAv1_out), "v1");
-  iEvent.put(std::move(MVAv2_out), "v2");
+  iEvent.put(std::move(MVAv1_out), "RAWv1");
+  iEvent.put(std::move(MVAv2_out), "RAWv2");
+  iEvent.put(std::move(WPv1_out), "WPv1");
+  iEvent.put(std::move(WPv2_out), "WPv2");
 }
 
 // avoid linking errors, this function is not actually used
 template <>
-void TopLeptonMVAIDProducer<pat::Muon>::getMVAEle(edm::Event& iEvent) const {}
+void TopLeptonMVAProducer<pat::Muon>::getMVAEle(edm::Event& iEvent) const {}
 
 // avoid linking errors, this function is not actually used
 template <>
-void TopLeptonMVAIDProducer<pat::Electron>::getMVAMu(edm::Event& iEvent) const {}
+void TopLeptonMVAProducer<pat::Electron>::getMVAMu(edm::Event& iEvent) const {}
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
 template <typename T>
-void TopLeptonMVAIDProducer<T>::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+void TopLeptonMVAProducer<T>::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
   desc.add<edm::InputTag>("leptons")->setComment("input lepton collection");
   desc.add<edm::InputTag>("jets")->setComment("input jet collection");
@@ -164,13 +204,13 @@ void TopLeptonMVAIDProducer<T>::fillDescriptions(edm::ConfigurationDescriptions&
     prodname += "Muon";
   else if (typeid(T) == typeid(pat::Electron))
     prodname += "Ele";
-  prodname += "TopLeptonMVAIDProducer";
+  prodname += "TopLeptonMVAProducer";
 
   descriptions.add(prodname, desc);
 }
 
-typedef TopLeptonMVAIDProducer<pat::Electron> EleTopLeptonMVAIDProducer;
-typedef TopLeptonMVAIDProducer<pat::Muon> MuTopLeptonMVAIDProducer;
+typedef TopLeptonMVAProducer<pat::Electron> EleTopLeptonMVAProducer;
+typedef TopLeptonMVAProducer<pat::Muon> MuTopLeptonMVAProducer;
 
-DEFINE_FWK_MODULE(EleTopLeptonMVAIDProducer);
-DEFINE_FWK_MODULE(MuTopLeptonMVAIDProducer);
+DEFINE_FWK_MODULE(EleTopLeptonMVAProducer);
+DEFINE_FWK_MODULE(MuTopLeptonMVAProducer);
