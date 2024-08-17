@@ -32,6 +32,7 @@
 
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/PatCandidates/interface/Jet.h"
 
 #include <xgboost/c_api.h>
 
@@ -42,7 +43,8 @@ template <class T>
 class TopLeptonMVAIDProducer : public edm::stream::EDProducer<> {
 public:
   explicit TopLeptonMVAIDProducer(const edm::ParameterSet& iConfig) :
-      leptons_(consumes<edm::View<T>>(iConfig.getParameter<edm::InputTag>("leptons"))) {
+      leptons_(consumes<edm::View<T>>(iConfig.getParameter<edm::InputTag>("leptons"))),
+      jets_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jets"))) {
     produces<edm::ValueMap<float>>("v1");
     produces<edm::ValueMap<float>>("v2");
 
@@ -65,6 +67,7 @@ private:
 
   // ----------member data ---------------------------
   edm::EDGetTokenT<edm::View<T>> leptons_;
+  edm::EDGetTokenT<edm::View<pat::Jet>> jets_;
   edm::FileInPath weights_v1_;
   edm::FileInPath weights_v2_;
   std::vector<std::string> features_v1_;
@@ -84,12 +87,15 @@ void TopLeptonMVAIDProducer<T>::produce(edm::Event& iEvent, const edm::EventSetu
 template <>
 void TopLeptonMVAIDProducer<pat::Electron>::getMVAEle(edm::Event& iEvent) const {
   edm::Handle<edm::View<pat::Electron>> leptons;
+  edm::Handle<edm::View<pat::Jet>> jets;
   iEvent.getByToken(leptons_, leptons);
+  iEvent.getByToken(jets_, jets);
 
   std::vector<float> MVAv1;
   std::vector<float> MVAv2;
   MVAv1.reserve(leptons->size());
   MVAv2.reserve(leptons->size());
+
   for (unsigned int i = 0; i < leptons->size(); i++) MVAv1.push_back(0.1*(float)i);
   for (unsigned int i = 0; i < leptons->size(); i++) MVAv2.push_back(0.2*(float)i);
 
@@ -106,19 +112,18 @@ void TopLeptonMVAIDProducer<pat::Electron>::getMVAEle(edm::Event& iEvent) const 
   iEvent.put(std::move(MVAv2_out), "v2");
 }
 
-// avoid linking errors, this function is not actually used
-template <>
-void TopLeptonMVAIDProducer<pat::Muon>::getMVAEle(edm::Event& iEvent) const {}
-
 template <>
 void TopLeptonMVAIDProducer<pat::Muon>::getMVAMu(edm::Event& iEvent) const {
   edm::Handle<edm::View<pat::Muon>> leptons;
+  edm::Handle<edm::View<pat::Jet>> jets;
   iEvent.getByToken(leptons_, leptons);
+  iEvent.getByToken(jets_, jets);
 
   std::vector<float> MVAv1;
   std::vector<float> MVAv2;
   MVAv1.reserve(leptons->size());
   MVAv2.reserve(leptons->size());
+
   for (unsigned int i = 0; i < leptons->size(); i++) MVAv1.push_back(0.3*(float)i);
   for (unsigned int i = 0; i < leptons->size(); i++) MVAv2.push_back(0.4*(float)i);
 
@@ -137,6 +142,10 @@ void TopLeptonMVAIDProducer<pat::Muon>::getMVAMu(edm::Event& iEvent) const {
 
 // avoid linking errors, this function is not actually used
 template <>
+void TopLeptonMVAIDProducer<pat::Muon>::getMVAEle(edm::Event& iEvent) const {}
+
+// avoid linking errors, this function is not actually used
+template <>
 void TopLeptonMVAIDProducer<pat::Electron>::getMVAMu(edm::Event& iEvent) const {}
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
@@ -144,6 +153,7 @@ template <typename T>
 void TopLeptonMVAIDProducer<T>::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
   desc.add<edm::InputTag>("leptons")->setComment("input lepton collection");
+  desc.add<edm::InputTag>("jets")->setComment("input jet collection");
   desc.add<edm::FileInPath>("weights_v1")->setComment("json file containing weights for v1");
   desc.add<edm::FileInPath>("weights_v2")->setComment("json file containing weights for v2");
   desc.add<std::vector<std::string>>("features_v1")->setComment("features for v1");

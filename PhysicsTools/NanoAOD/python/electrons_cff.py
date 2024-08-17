@@ -297,6 +297,7 @@ feat_v2 = ["pt", "absEta", "jetNDauCharged", "miniPFRelIso_chg", "miniPFRelIso_n
         "jetPtRatio", "pfRelIso03_all", "jetBTag", "sip3d", "dxy", "dz", "mvaNoIso", "lostHits"]
 electronTopLeptonMVAID = cms.EDProducer("EleTopLeptonMVAIDProducer",
     leptons = cms.InputTag("linkedObjects", "electrons"),
+    jets = cms.InputTag("updatedJetsPuppi"),
     weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv1UL16_XGB_v1.0.0_weights.bin"),
     weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv2UL16_XGB_v1.0.0_weights.bin"),
     features_v1 = cms.vstring(feat_v1),

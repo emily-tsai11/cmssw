@@ -114,6 +114,7 @@ feat = ["pt", "absEta", "jetNDauCharged", "miniPFRelIso_chg", "miniPFRelIso_neu"
         "jetPtRatio", "pfRelIso03_all", "jetBTag", "sip3d", "dxy", "dz", "segmentComp"]
 muonTopLeptonMVAID = cms.EDProducer("MuTopLeptonMVAIDProducer",
     leptons = cms.InputTag("linkedObjects", "muons"),
+    jets = cms.InputTag("updatedJetsPuppi"),
     weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv1UL16_XGB_v1.0.0_weights.bin"),
     weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv2UL16_XGB_v1.0.0_weights.bin"),
     features_v1 = cms.vstring(feat),
