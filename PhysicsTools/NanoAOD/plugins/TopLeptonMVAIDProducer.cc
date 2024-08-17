@@ -33,6 +33,8 @@
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 
+#include <xgboost/c_api.h>
+
 //
 // class declaration
 //
@@ -40,13 +42,19 @@ template <class T>
 class TopLeptonMVAIDProducer : public edm::stream::EDProducer<> {
 public:
   explicit TopLeptonMVAIDProducer(const edm::ParameterSet& iConfig) :
-      src_(consumes<edm::View<T>>(iConfig.getParameter<edm::InputTag>("src"))) {
+      leptons_(consumes<edm::View<T>>(iConfig.getParameter<edm::InputTag>("leptons"))) {
     produces<edm::ValueMap<float>>("v1");
     produces<edm::ValueMap<float>>("v2");
+
     weights_v1_ = iConfig.getParameter<edm::FileInPath>("weights_v1");
     weights_v2_ = iConfig.getParameter<edm::FileInPath>("weights_v2");
     features_v1_ = iConfig.getParameter<std::vector<std::string>>("features_v1");
     features_v2_ = iConfig.getParameter<std::vector<std::string>>("features_v2");
+
+    XGBoosterCreate(NULL, 0, &booster_v1_);
+    XGBoosterCreate(NULL, 0, &booster_v2_);
+    XGBoosterLoadModel(booster_v1_, weights_v1_.fullPath().c_str());
+    XGBoosterLoadModel(booster_v2_, weights_v2_.fullPath().c_str());
   }
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
@@ -56,11 +64,13 @@ private:
   void getMVAMu(edm::Event&) const;
 
   // ----------member data ---------------------------
-  edm::EDGetTokenT<edm::View<T>> src_;
+  edm::EDGetTokenT<edm::View<T>> leptons_;
   edm::FileInPath weights_v1_;
   edm::FileInPath weights_v2_;
   std::vector<std::string> features_v1_;
   std::vector<std::string> features_v2_;
+  BoosterHandle booster_v1_;
+  BoosterHandle booster_v2_;
 };
 
 // ------------ method called to produce the data  ------------
@@ -73,23 +83,23 @@ void TopLeptonMVAIDProducer<T>::produce(edm::Event& iEvent, const edm::EventSetu
 
 template <>
 void TopLeptonMVAIDProducer<pat::Electron>::getMVAEle(edm::Event& iEvent) const {
-  edm::Handle<edm::View<pat::Electron>> src;
-  iEvent.getByToken(src_, src);
+  edm::Handle<edm::View<pat::Electron>> leptons;
+  iEvent.getByToken(leptons_, leptons);
 
   std::vector<float> MVAv1;
   std::vector<float> MVAv2;
-  MVAv1.reserve(src->size());
-  MVAv2.reserve(src->size());
-  for (unsigned int i = 0; i < src->size(); i++) MVAv1.push_back(0.1*(float)i);
-  for (unsigned int i = 0; i < src->size(); i++) MVAv2.push_back(0.2*(float)i);
+  MVAv1.reserve(leptons->size());
+  MVAv2.reserve(leptons->size());
+  for (unsigned int i = 0; i < leptons->size(); i++) MVAv1.push_back(0.1*(float)i);
+  for (unsigned int i = 0; i < leptons->size(); i++) MVAv2.push_back(0.2*(float)i);
 
   auto MVAv1_out = std::make_unique<edm::ValueMap<float>>();
   edm::ValueMap<float>::Filler filler_v1(*MVAv1_out);
-  filler_v1.insert(src, MVAv1.begin(), MVAv1.end());
+  filler_v1.insert(leptons, MVAv1.begin(), MVAv1.end());
   filler_v1.fill();
   auto MVAv2_out = std::make_unique<edm::ValueMap<float>>();
   edm::ValueMap<float>::Filler filler_v2(*MVAv2_out);
-  filler_v2.insert(src, MVAv2.begin(), MVAv2.end());
+  filler_v2.insert(leptons, MVAv2.begin(), MVAv2.end());
   filler_v2.fill();
 
   iEvent.put(std::move(MVAv1_out), "v1");
@@ -102,23 +112,23 @@ void TopLeptonMVAIDProducer<pat::Muon>::getMVAEle(edm::Event& iEvent) const {}
 
 template <>
 void TopLeptonMVAIDProducer<pat::Muon>::getMVAMu(edm::Event& iEvent) const {
-  edm::Handle<edm::View<pat::Muon>> src;
-  iEvent.getByToken(src_, src);
+  edm::Handle<edm::View<pat::Muon>> leptons;
+  iEvent.getByToken(leptons_, leptons);
 
   std::vector<float> MVAv1;
   std::vector<float> MVAv2;
-  MVAv1.reserve(src->size());
-  MVAv2.reserve(src->size());
-  for (unsigned int i = 0; i < src->size(); i++) MVAv1.push_back(0.3*(float)i);
-  for (unsigned int i = 0; i < src->size(); i++) MVAv2.push_back(0.4*(float)i);
+  MVAv1.reserve(leptons->size());
+  MVAv2.reserve(leptons->size());
+  for (unsigned int i = 0; i < leptons->size(); i++) MVAv1.push_back(0.3*(float)i);
+  for (unsigned int i = 0; i < leptons->size(); i++) MVAv2.push_back(0.4*(float)i);
 
   auto MVAv1_out = std::make_unique<edm::ValueMap<float>>();
   edm::ValueMap<float>::Filler filler_v1(*MVAv1_out);
-  filler_v1.insert(src, MVAv1.begin(), MVAv1.end());
+  filler_v1.insert(leptons, MVAv1.begin(), MVAv1.end());
   filler_v1.fill();
   auto MVAv2_out = std::make_unique<edm::ValueMap<float>>();
   edm::ValueMap<float>::Filler filler_v2(*MVAv2_out);
-  filler_v2.insert(src, MVAv2.begin(), MVAv2.end());
+  filler_v2.insert(leptons, MVAv2.begin(), MVAv2.end());
   filler_v2.fill();
 
   iEvent.put(std::move(MVAv1_out), "v1");
@@ -133,7 +143,7 @@ void TopLeptonMVAIDProducer<pat::Electron>::getMVAMu(edm::Event& iEvent) const {
 template <typename T>
 void TopLeptonMVAIDProducer<T>::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
-  desc.add<edm::InputTag>("src")->setComment("input physics object (lepton) collection");
+  desc.add<edm::InputTag>("leptons")->setComment("input lepton collection");
   desc.add<edm::FileInPath>("weights_v1")->setComment("json file containing weights for v1");
   desc.add<edm::FileInPath>("weights_v2")->setComment("json file containing weights for v2");
   desc.add<std::vector<std::string>>("features_v1")->setComment("features for v1");
