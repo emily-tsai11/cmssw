@@ -151,11 +151,13 @@ void TopLeptonMVAProducer<pat::Electron>::getMVAEle(edm::Event& iEvent) const {
     float jetNDauCharged = (*jetNDauChargedVM)[eleRef];
     float miniPFRelIso_chg = (*miniIsoChgVM)[eleRef] / pt;
     float miniPFRelIso_neu = (*miniIsoAllVM)[eleRef] / pt - miniPFRelIso_chg;
-    float jetPtRelv2 = (*jetForLepJetVarVM)[eleRef].isNonnull() ? (*ptRelVM)[eleRef] : 0;
-    float jetPtRatio = (*jetForLepJetVarVM)[eleRef].isNonnull() ? std::min((double)(*ptRatioVM)[eleRef], 1.5) : 1.0 / (1.0 + (*PFIsoAll04VM)[eleRef] / pt);
+    float jetPtRelv2 = (*jetForLepJetVarVM)[eleRef].isNonnull() ? (*ptRelVM)[eleRef] : 0.0; 
+    float jetPtRatio = (*jetForLepJetVarVM)[eleRef].isNonnull()
+        ? std::min((double)(*ptRatioVM)[eleRef], 1.5)
+        : 1.0 / (1.0 + (*PFIsoAll04VM)[eleRef] / pt);
     float pfRelIso03_all = (*PFIsoAllVM)[eleRef] / pt;
     float jetBtag = (*jetForLepJetVarVM)[eleRef].isNonnull() ? std::max((double)(*jetBtagVM)[eleRef], 0.0) : 0.0;
-    float sip3d = eleRef->dB(pat::Electron::PV3D) / eleRef->dB(pat::Electron::PV3D);
+    float sip3d = eleRef->dB(pat::Electron::PV3D) / eleRef->edB(pat::Electron::PV3D);
     float dxy = eleRef->dB(pat::Electron::PV2D);
     float dz = eleRef->dB(pat::Electron::PVDZ);
     float mvaFall17V2noIso = (*mvaFall17V2noIsoVM)[eleRef];
@@ -243,7 +245,21 @@ void TopLeptonMVAProducer<pat::Electron>::getMVAEle(edm::Event& iEvent) const {
 template <>
 void TopLeptonMVAProducer<pat::Muon>::getMVAMu(edm::Event& iEvent) const {
   edm::Handle<std::vector<pat::Muon>> muons;
+  edm::Handle<edm::ValueMap<float>> jetNDauChargedVM;
+  edm::Handle<edm::ValueMap<float>> miniIsoChgVM;
+  edm::Handle<edm::ValueMap<float>> miniIsoAllVM;
+  edm::Handle<edm::ValueMap<float>> ptRelVM;
+  edm::Handle<edm::ValueMap<float>> ptRatioVM;
+  edm::Handle<edm::ValueMap<float>> jetBtagVM;
+  edm::Handle<edm::ValueMap<reco::CandidatePtr>> jetForLepJetVarVM;
   iEvent.getByToken(leptons_, muons);
+  iEvent.getByToken(jetNDauCharged_, jetNDauChargedVM);
+  iEvent.getByToken(miniIsoChg_, miniIsoChgVM);
+  iEvent.getByToken(miniIsoAll_, miniIsoAllVM);
+  iEvent.getByToken(ptRel_, ptRelVM);
+  iEvent.getByToken(ptRatio_, ptRatioVM);
+  iEvent.getByToken(jetBtag_, jetBtagVM);
+  iEvent.getByToken(jetForLepJetVar_, jetForLepJetVarVM);
 
   std::vector<float> MVAv1;
   std::vector<float> MVAv2;
@@ -254,15 +270,68 @@ void TopLeptonMVAProducer<pat::Muon>::getMVAMu(edm::Event& iEvent) const {
   WPv1.reserve(muons->size());
   WPv2.reserve(muons->size());
 
+  const int nFeatures = 13;
   for (unsigned int iMu = 0; iMu < muons->size(); iMu++) {
     const pat::MuonRef muRef(muons, iMu);
-  }
 
-  for (unsigned int i = 0; i < muons->size(); i++) {
-    MVAv1.push_back(0.3*(float)i);
-    MVAv2.push_back(0.4*(float)i);
-    WPv1.push_back(3*i);
-    WPv2.push_back(4*i);
+    float pt = muRef->pt();
+    float absEta = std::abs(muRef->eta());
+    float jetNDauCharged = (*jetNDauChargedVM)[muRef];
+    float miniPFRelIso_chg = (*miniIsoChgVM)[muRef] / pt;
+    float miniPFRelIso_neu = (*miniIsoAllVM)[muRef] / pt - miniPFRelIso_chg;
+    float jetPtRelv2 = (*jetForLepJetVarVM)[muRef].isNonnull() ? (*ptRelVM)[muRef] : 0.0;
+    float jetPtRatio = (*jetForLepJetVarVM)[muRef].isNonnull()
+        ? std::min((double)(*ptRatioVM)[muRef], 1.5)
+        : 1.0 / (1.0 + (muRef->pfIsolationR04().sumChargedHadronPt + std::max(muRef->pfIsolationR04().sumNeutralHadronEt
+            + muRef->pfIsolationR04().sumPhotonEt - muRef->pfIsolationR04().sumPUPt / 2.0, 0.0)) / pt);
+    float pfRelIso03_all = (muRef->pfIsolationR03().sumChargedHadronPt + std::max(muRef->pfIsolationR03().sumNeutralHadronEt
+        + muRef->pfIsolationR03().sumPhotonEt - muRef->pfIsolationR03().sumPUPt / 2.0, 0.0)) / pt;
+    float jetBtag = (*jetForLepJetVarVM)[muRef].isNonnull() ? std::max((double)(*jetBtagVM)[muRef], 0.0) : 0.0;
+    float sip3d = muRef->dB(pat::Muon::PV3D) / muRef->edB(pat::Muon::PV3D);
+    float dxy = muRef->dB(pat::Muon::PV2D);
+    float dz = muRef->dB(pat::Muon::PVDZ);
+    float segmentComp = muRef->segmentCompatibility();
+
+    float features[1][nFeatures];
+    features[0][0] = pt;
+    features[0][1] = absEta;
+    features[0][2] = jetNDauCharged;
+    features[0][3] = miniPFRelIso_chg;
+    features[0][4] = miniPFRelIso_neu;
+    features[0][5] = jetPtRelv2;
+    features[0][6] = jetPtRatio;
+    features[0][7] = pfRelIso03_all;
+    features[0][8] = jetBtag;
+    features[0][9] = sip3d;
+    features[0][10] = dxy;
+    features[0][11] = dz;
+    features[0][12] = segmentComp;
+
+    DMatrixHandle dtest_v1;
+    XGDMatrixCreateFromMat((float*)features, 1, nFeatures, NAN, &dtest_v1);
+    unsigned long out_len_v1;
+    const float *raw_v1;
+    XGBoosterPredict(booster_v1_, dtest_v1, 0, 0, 0, &out_len_v1, &raw_v1);
+    XGDMatrixFree(dtest_v1);
+    int wp_v1 = 0;
+    for (const float &wp : workingPoints_v1) {
+      if (*raw_v1 > wp) wp_v1 += 1;
+    }
+    MVAv1.push_back(*raw_v1);
+    WPv1.push_back(wp_v1);
+
+    DMatrixHandle dtest_v2;
+    XGDMatrixCreateFromMat((float*)features, 1, nFeatures, NAN, &dtest_v2);
+    unsigned long out_len_v2;
+    const float *raw_v2;
+    XGBoosterPredict(booster_v2_, dtest_v2, 0, 0, 0, &out_len_v2, &raw_v2);
+    XGDMatrixFree(dtest_v2);
+    int wp_v2 = 0;
+    for (const float &wp : workingPoints_v2) {
+      if (*raw_v2 > wp) wp_v2 += 1;
+    }
+    MVAv2.push_back(*raw_v2);
+    WPv2.push_back(wp_v2);
   }
 
   auto MVAv1_out = std::make_unique<edm::ValueMap<float>>();
