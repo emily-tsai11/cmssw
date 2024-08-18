@@ -103,13 +103,51 @@ isoForEleFall17V2 = isoForEle.clone(
 #######################################ISO ELE end#####################################
 
 ######################################ptRatioForEle#####################################
-###import from hysicsTools/NanoAOD/pythonElectronJetVarProducer_cfi.py
+###import from PhysicsTools/NanoAOD/pythonElectronJetVarProducer_cfi.py
 ptRatioRelForEle = cms.EDProducer("ElectronJetVarProducer",
     srcJet = cms.InputTag("updatedJetsPuppi"),
     srcLep = cms.InputTag("slimmedElectrons"),
     srcVtx = cms.InputTag("offlineSlimmedPrimaryVertices"),
+    bDiscLabel = cms.string("pfParticleNetFromMiniAODAK4PuppiCentralDiscriminatorsJetTags:BvsAll"),
 )
 ######################################ptRatioForEle#####################################
+
+################################################electronTopLeptonMVA#####################
+# For Run 2 UL only
+electronTopLeptonMVA = cms.EDProducer("EleTopLeptonMVAProducer",
+    leptons = cms.InputTag("slimmedElectrons"),
+    jetNDauCharged = cms.InputTag("ptRatioRelForEle:jetNDauChargedMVASel"),
+    miniIsoChg = cms.InputTag("isoForEleFall17V2:miniIsoChg"),
+    miniIsoAll = cms.InputTag("isoForEleFall17V2:miniIsoAll"),
+    ptRel = cms.InputTag("ptRatioRelForEle:ptRel"),
+    ptRatio = cms.InputTag("ptRatioRelForEle:ptRatio"),
+    PFIsoAll04 = cms.InputTag("isoForEleFall17V2:PFIsoAll04"),
+    PFIsoAll = cms.InputTag("isoForEleFall17V2:PFIsoAll"),
+    jetBtag = cms.InputTag("ptRatioRelForEle:jetBtag"),
+    mvaFall17V2noIso = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Fall17NoIsoV2Values"),
+    jetForLepJetVar = cms.InputTag("ptRatioRelForEle:jetForLepJetVar"), # WARNING: ptr is null if no match is found
+)
+(run2_egamma_2016 & tracker_apv_vfp30_2016).toModify(
+    electronTopLeptonMVA,
+    weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv1UL16APV_XGB_v1.0.0_weights.bin"),
+    weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv2UL16APV_XGB_v1.0.0_weights.bin"),
+)
+(run2_egamma_2016 & ~tracker_apv_vfp30_2016).toModify(
+    electronTopLeptonMVA,
+    weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv1UL16_XGB_v1.0.0_weights.bin"),
+    weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv2UL16_XGB_v1.0.0_weights.bin"),
+)
+run2_egamma_2017.toModify(
+    electronTopLeptonMVA,
+    weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv1UL17_XGB_v1.0.0_weights.bin"),
+    weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv2UL17_XGB_v1.0.0_weights.bin"),
+)
+run2_egamma_2018.toModify(
+    electronTopLeptonMVA,
+    weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv1UL18_XGB_v1.0.0_weights.bin"),
+    weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv2UL18_XGB_v1.0.0_weights.bin"),
+)
+################################################electronTopLeptonMVA end#####################
 
 #############3###################seedGailEle#############################
 seedGainEle = cms.EDProducer("ElectronSeedGainProducer", src = cms.InputTag("slimmedElectrons"))
@@ -172,6 +210,9 @@ slimmedElectronsWithUserData = cms.EDProducer("PATElectronUserDataEmbedder",
         ptRatio = cms.InputTag("ptRatioRelForEle:ptRatio"),
         ptRel = cms.InputTag("ptRatioRelForEle:ptRel"),
         jetNDauChargedMVASel = cms.InputTag("ptRatioRelForEle:jetNDauChargedMVASel"),
+
+        rawTopLeptonMVAv1 = cms.InputTag("electronTopLeptonMVA:RAWv1"),
+        rawTopLeptonMVAv2 = cms.InputTag("electronTopLeptonMVA:RAWv2"),
     ),
     userIntFromBools = cms.PSet(        
         mvaIso_Fall17V2_WP90 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wp90"),
@@ -199,8 +240,9 @@ slimmedElectronsWithUserData = cms.EDProducer("PATElectronUserDataEmbedder",
         VIDNestedWPBitmap = cms.InputTag("bitmapVIDForEle"),
         VIDNestedWPBitmap_Fall17V2 = cms.InputTag("bitmapVIDForEleFall17V2"),
         VIDNestedWPBitmapHEEP = cms.InputTag("bitmapVIDForEleHEEP"),
+        idTopLeptonMVAv1 = cms.InputTag("electronTopLeptonMVA:WPv1"),
+        idTopLeptonMVAv2 = cms.InputTag("electronTopLeptonMVA:WPv2"),
         seedGain = cms.InputTag("seedGainEle"),
-      
     ),
     userCands = cms.PSet(
         jetForLepJetVar = cms.InputTag("ptRatioRelForEle:jetForLepJetVar") # warning: Ptr is null if no match is found
@@ -289,49 +331,6 @@ run2_egamma_2016.toModify(
 )
 ################################################electronMVATTH end#####################
 
-################################################electronTopLeptonMVA#####################
-# For Run 2 UL only, randomly chose 2016 as default
-electronTopLeptonMVA = cms.EDProducer("EleTopLeptonMVAProducer",
-    leptons = cms.InputTag("linkedObjects", "electrons"),
-    jetNDauCharged = cms.InputTag("ptRatioRelForEle:jetNDauChargedMVASel"),
-    miniIsoChg = cms.InputTag("isoForEle:miniIsoChg"),
-    miniIsoAll = cms.InputTag("isoForEle:miniIsoAll"),
-    ptRel = cms.InputTag("ptRatioRelForEle:ptRel"),
-    ptRatio = cms.InputTag("ptRatioRelForEle:ptRatio"),
-    PFIsoAll = cms.InputTag("isoForEle:PFIsoAll"),
-    jetForLepJetVar = cms.InputTag("ptRatioRelForEle:jetForLepJetVar"), # WARNING: ptr is null if no match is found
-    jets = cms.InputTag("updatedJetsPuppi"),
-    primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
-    mvaFall17V2noIso = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Fall17NoIsoV2Values"),
-    weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv1UL16_XGB_v1.0.0_weights.bin"),
-    weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/el_TOPv2UL16_XGB_v1.0.0_weights.bin"),
-    # features_v1 = cms.vstring(["pt", "absEta", "jetNDauCharged", "miniPFRelIso_chg", "miniPFRelIso_neu",
-    #     "jetPtRelv2", "jetPtRatio", "pfRelIso03_all", "jetBTag", "sip3d", "dxy", "dz", "mvaNoIso"]),
-    # features_v2 = cms.vstring(["pt", "absEta", "jetNDauCharged", "miniPFRelIso_chg", "miniPFRelIso_neu",
-    #     "jetPtRelv2", "jetPtRatio", "pfRelIso03_all", "jetBTag", "sip3d", "dxy", "dz", "mvaNoIso", "lostHits"]),
-)
-(run2_egamma_2016 & tracker_apv_vfp30_2016).toModify(
-    electronTopLeptonMVA,
-    weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPv1UL16APV_XGB_v1.0.0_weights.bin",
-    weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL16APV_XGB_v1.0.0_weights.bin",
-)
-(run2_egamma_2016 & ~tracker_apv_vfp30_2016).toModify(
-    electronTopLeptonMVA,
-    weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPv1UL16_XGB_v1.0.0_weights.bin",
-    weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL16_XGB_v1.0.0_weights.bin",
-)
-run2_egamma_2017.toModify(
-    electronTopLeptonMVA,
-    weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPv1UL17_XGB_v1.0.0_weights.bin",
-    weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL17_XGB_v1.0.0_weights.bin",
-)
-run2_egamma_2018.toModify(
-    electronTopLeptonMVA,
-    weights_v1 = "PhysicsTools/NanoAOD/data/el_TOPv1UL18_XGB_v1.0.0_weights.bin",
-    weights_v2 = "PhysicsTools/NanoAOD/data/el_TOPv2UL18_XGB_v1.0.0_weights.bin",
-)
-################################################electronTopLeptonMVA end#####################
-
 ################################################electronTable defn #####################
 electronTable = simpleCandidateFlatTableProducer.clone(
     src = cms.InputTag("linkedObjects","electrons"),
@@ -400,13 +399,13 @@ electronTable = simpleCandidateFlatTableProducer.clone(
         seediEtaOriX = Var("superCluster().seedCrysIEtaOrIx","int8",doc="iEta or iX of seed crystal. iEta is barrel-only, iX is endcap-only. iEta runs from -85 to +85, with no crystal at iEta=0. iX runs from 1 to 100."),
         seediPhiOriY = Var("superCluster().seedCrysIPhiOrIy",int,doc="iPhi or iY of seed crystal. iPhi is barrel-only, iY is endcap-only. iPhi runs from 1 to 360. iY runs from 1 to 100."),
         jetNDauCharged = Var("?userCand('jetForLepJetVar').isNonnull()?userFloat('jetNDauChargedMVASel'):0", "uint8", doc="number of charged daughters of the closest jet"),
+        rawTopLeptonMVAv1 = Var("userFloat('rawTopLeptonMVAv1')", float, doc="top lepton MVA v1 electron score", precision=14),
+        rawTopLeptonMVAv2 = Var("userFloat('rawTopLeptonMVAv2')", float, doc="top lepton MVA v2 electron score", precision=14),
+        idTopLeptonMVAv1 = Var("userInt('idTopLeptonMVAv1')", int, doc="top lepton MVA v1 electron working point"),
+        idTopLeptonMVAv2 = Var("userInt('idTopLeptonMVAv2')", int, doc="top lepton MVA v2 electron working point"),
     ),
     externalVariables = cms.PSet(
         mvaTTH = ExtVar(cms.InputTag("electronMVATTH"),float, doc="TTH MVA lepton ID score",precision=14),
-        rawTopLeptonMVAv1 = ExtVar(cms.InputTag("electronTopLeptonMVA:RAWv1"), float, doc="top lepton MVA v1 electron score", precision=14),
-        rawTopLeptonMVAv2 = ExtVar(cms.InputTag("electronTopLeptonMVA:RAWv2"), float, doc="top lepton MVA v2 electron score", precision=14),
-        idTopLeptonMVAv1 = ExtVar(cms.InputTag("electronTopLeptonMVA:WPv1"), int, doc="top lepton MVA v1 electron working point"),
-        idTopLeptonMVAv2 = ExtVar(cms.InputTag("electronTopLeptonMVA:WPv2"), int, doc="top lepton MVA v2 electron working point"),
         fsrPhotonIdx = ExtVar(cms.InputTag("leptonFSRphotons:eleFsrIndex"), "int16", doc="Index of the lowest-dR/ET2 among associated FSR photons"),
     ),
 )
@@ -504,13 +503,14 @@ electronMCTable = cms.EDProducer("CandMCMatchTableProducer",
 )
 
 electronTask = cms.Task(bitmapVIDForEle,bitmapVIDForEleFall17V2,bitmapVIDForEleHEEP,isoForEle,isoForEleFall17V2,ptRatioRelForEle,seedGainEle,calibratedPatElectronsNano,slimmedElectronsWithUserData,finalElectrons)
-electronTablesTask = cms.Task(electronMVATTH, electronTopLeptonMVA, electronTable)
+electronTablesTask = cms.Task(electronMVATTH, electronTable)
 electronMCTask = cms.Task(tautaggerForMatching, matchingElecPhoton, electronsMCMatchForTable, electronsMCMatchForTableAlt, electronMCTable)
 
 _electronTask_Run2 = electronTask.copy()
 _electronTask_Run2.remove(bitmapVIDForEle)
 _electronTask_Run2.remove(isoForEle)
 _electronTask_Run2.add(calibratedPatElectronsNano)
+_electronTask_Run2.add(electronTopLeptonMVA)
 run2_egamma.toReplaceWith(electronTask, _electronTask_Run2)
 
 # Revert back to AK4 CHS jets for Run2 inputs

@@ -24,3 +24,4 @@ run2_nanoAOD_ANY = (
 )
 
 run2_egamma = (run2_egamma_2016 | run2_egamma_2017 | run2_egamma_2018)
+run2_muon = (run2_muon_2016 | run2_muon_2017 | run2_muon_2018)

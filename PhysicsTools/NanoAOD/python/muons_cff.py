@@ -28,6 +28,39 @@ ptRatioRelForMu = cms.EDProducer("MuonJetVarProducer",
     srcJet = cms.InputTag("updatedJetsPuppi"),
     srcLep = cms.InputTag("slimmedMuonsUpdated"),
     srcVtx = cms.InputTag("offlineSlimmedPrimaryVertices"),
+    bDiscLabel = cms.string("pfParticleNetFromMiniAODAK4PuppiCentralDiscriminatorsJetTags:BvsAll"),
+)
+
+# For Run 2 UL only
+muonTopLeptonMVA = cms.EDProducer("MuTopLeptonMVAProducer",
+    leptons = cms.InputTag("slimmedMuonsUpdated"),
+    jetNDauCharged = cms.InputTag("ptRatioRelForMu:jetNDauChargedMVASel"),
+    miniIsoChg = cms.InputTag("isoForMu:miniIsoChg"),
+    miniIsoAll = cms.InputTag("isoForMu:miniIsoAll"),
+    ptRel = cms.InputTag("ptRatioRelForMu:ptRel"),
+    ptRatio = cms.InputTag("ptRatioRelForMu:ptRatio"),
+    jetBtag = cms.InputTag("ptRatioRelForMu:jetBtag"),
+    jetForLepJetVar = cms.InputTag("ptRatioRelForMu:jetForLepJetVar"), # WARNING: ptr is null if no match is found
+)
+(run2_muon_2016 & tracker_apv_vfp30_2016).toModify(
+    muonTopLeptonMVA,
+    weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv1UL16APV_XGB_v1.0.0_weights.bin"),
+    weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv2UL16APV_XGB_v1.0.0_weights.bin"),
+)
+(run2_muon_2016 & ~tracker_apv_vfp30_2016).toModify(
+    muonTopLeptonMVA,
+    weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv1UL16_XGB_v1.0.0_weights.bin"),
+    weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv2UL16_XGB_v1.0.0_weights.bin"),
+)
+run2_muon_2017.toModify(
+    muonTopLeptonMVA,
+    weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv1UL17_XGB_v1.0.0_weights.bin"),
+    weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv2UL17_XGB_v1.0.0_weights.bin"),
+)
+run2_muon_2018.toModify(
+    muonTopLeptonMVA,
+    weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv1UL18_XGB_v1.0.0_weights.bin"),
+    weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv2UL18_XGB_v1.0.0_weights.bin"),
 )
 
 muonMVAID = cms.EDProducer("EvaluateMuonMVAID",
@@ -57,19 +90,25 @@ muonMVAID = cms.EDProducer("EvaluateMuonMVAID",
 )
 
 slimmedMuonsWithUserData = cms.EDProducer("PATMuonUserDataEmbedder",
-     src = cms.InputTag("slimmedMuonsUpdated"),
-     userFloats = cms.PSet(
+    src = cms.InputTag("slimmedMuonsUpdated"),
+    userFloats = cms.PSet(
         miniIsoChg = cms.InputTag("isoForMu:miniIsoChg"),
         miniIsoAll = cms.InputTag("isoForMu:miniIsoAll"),
         ptRatio = cms.InputTag("ptRatioRelForMu:ptRatio"),
         ptRel = cms.InputTag("ptRatioRelForMu:ptRel"),
         jetNDauChargedMVASel = cms.InputTag("ptRatioRelForMu:jetNDauChargedMVASel"),
+        rawTopLeptonMVAv1 = cms.InputTag("muonTopLeptonMVA:RAWv1"),
+        rawTopLeptonMVAv2 = cms.InputTag("muonTopLeptonMVA:RAWv2"),
         mvaIDMuon_wpMedium = cms.InputTag("muonMVAID:wpMedium"),
         mvaIDMuon_wpTight = cms.InputTag("muonMVAID:wpTight")
-     ),
-     userCands = cms.PSet(
+    ),
+    userInts = cms.PSet(
+        idTopLeptonMVAv1 = cms.InputTag("muonTopLeptonMVA:WPv1"),
+        idTopLeptonMVAv2 = cms.InputTag("muonTopLeptonMVA:WPv2"),
+    ),
+    userCands = cms.PSet(
         jetForLepJetVar = cms.InputTag("ptRatioRelForMu:jetForLepJetVar") # warning: Ptr is null if no match is found
-     ),
+    ),
 )
 
 (run2_nanoAOD_106Xv2 | run3_nanoAOD_122 ).toModify(slimmedMuonsWithUserData.userFloats,
@@ -105,48 +144,7 @@ muonMVATTH= cms.EDProducer("MuonBaseMVAValueMapProducer",
         LepGood_sip3d = cms.string("abs(dB('PV3D')/edB('PV3D'))"),
         LepGood_dz = cms.string("log(abs(dB('PVDZ')))"),
         LepGood_segmentComp = cms.string("segmentCompatibility"),
-
     )
-)
-
-# For Run 2 UL only, randomly chose 2016 as default
-muonTopLeptonMVA = cms.EDProducer("MuTopLeptonMVAProducer",
-    leptons = cms.InputTag("linkedObjects", "muons"),
-    jetNDauCharged = cms.InputTag("ptRatioRelForMu:jetNDauChargedMVASel"),
-    miniIsoChg = cms.InputTag("isoForMu:miniIsoChg"),
-    miniIsoAll = cms.InputTag("isoForMu:miniIsoAll"),
-    ptRel = cms.InputTag("ptRatioRelForMu:ptRel"),
-    ptRatio = cms.InputTag("ptRatioRelForMu:ptRatio"),
-    PFIsoAll = cms.InputTag("isoForMu:PFIsoAll"),
-    jetForLepJetVar = cms.InputTag("ptRatioRelForMu:jetForLepJetVar"), # WARNING: ptr is null if no match is found
-    jets = cms.InputTag("updatedJetsPuppi"),
-    primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
-    weights_v1 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv1UL16_XGB_v1.0.0_weights.bin"),
-    weights_v2 = cms.FileInPath("PhysicsTools/NanoAOD/data/mu_TOPv2UL16_XGB_v1.0.0_weights.bin"),
-    # features_v1 = cms.vstring(["pt", "absEta", "jetNDauCharged", "miniPFRelIso_chg", "miniPFRelIso_neu",
-    #     "jetPtRelv2", "jetPtRatio", "pfRelIso03_all", "jetBTag", "sip3d", "dxy", "dz", "segmentComp"]),
-    # features_v2 = cms.vstring(["pt", "absEta", "jetNDauCharged", "miniPFRelIso_chg", "miniPFRelIso_neu",
-    #     "jetPtRelv2", "jetPtRatio", "pfRelIso03_all", "jetBTag", "sip3d", "dxy", "dz", "segmentComp"]),
-)
-(run2_muon_2016 & tracker_apv_vfp30_2016).toModify(
-    muonTopLeptonMVA,
-    weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPv1UL16APV_XGB_v1.0.0_weights.bin",
-    weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL16APV_XGB_v1.0.0_weights.bin",
-)
-(run2_muon_2016 & ~tracker_apv_vfp30_2016).toModify(
-    muonTopLeptonMVA,
-    weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPv1UL16_XGB_v1.0.0_weights.bin",
-    weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL16_XGB_v1.0.0_weights.bin",
-)
-run2_muon_2017.toModify(
-    muonTopLeptonMVA,
-    weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPv1UL17_XGB_v1.0.0_weights.bin",
-    weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL17_XGB_v1.0.0_weights.bin",
-)
-run2_muon_2018.toModify(
-    muonTopLeptonMVA,
-    weights_v1 = "PhysicsTools/NanoAOD/data/mu_TOPv1UL18_XGB_v1.0.0_weights.bin",
-    weights_v2 = "PhysicsTools/NanoAOD/data/mu_TOPv2UL18_XGB_v1.0.0_weights.bin",
 )
 
 muonMVALowPt = muonMVATTH.clone(
@@ -210,13 +208,13 @@ muonTable = simpleCandidateFlatTableProducer.clone(
         triggerIdLoose = Var("passed('TriggerIdLoose')",bool,doc="TriggerIdLoose ID"),
         inTimeMuon = Var("passed('InTimeMuon')",bool,doc="inTimeMuon ID"),
         jetNDauCharged = Var("?userCand('jetForLepJetVar').isNonnull()?userFloat('jetNDauChargedMVASel'):0", "uint8", doc="number of charged daughters of the closest jet"),
-        ),
+        rawTopLeptonMVAv1 = Var("userFloat('rawTopLeptonMVAv1')", float, doc="top lepton MVA v1 muon score", precision=14),
+        rawTopLeptonMVAv2 = Var("userFloat('rawTopLeptonMVAv2')", float, doc="top lepton MVA v2 muon score", precision=14),
+        idTopLeptonMVAv1 = Var("userInt('idTopLeptonMVAv1')", int, doc="top lepton MVA v1 muon working point"),
+        idTopLeptonMVAv2 = Var("userInt('idTopLeptonMVAv2')", int, doc="top lepton MVA v2 muon working point"),
+    ),
     externalVariables = cms.PSet(
         mvaTTH = ExtVar(cms.InputTag("muonMVATTH"),float, doc="TTH MVA lepton ID score",precision=14),
-        rawTopLeptonMVAv1 = ExtVar(cms.InputTag("muonTopLeptonMVA:RAWv1"), float, doc="top lepton MVA v1 muon score", precision=14),
-        rawTopLeptonMVAv2 = ExtVar(cms.InputTag("muonTopLeptonMVA:RAWv2"), float, doc="top lepton MVA v2 muon score", precision=14),
-        idTopLeptonMVAv1 = ExtVar(cms.InputTag("muonTopLeptonMVA:WPv1"), int, doc="top lepton MVA v1 muon working point"),
-        idTopLeptonMVAv2 = ExtVar(cms.InputTag("muonTopLeptonMVA:WPv2"), int, doc="top lepton MVA v2 muon working point"),
         mvaLowPt = ExtVar(cms.InputTag("muonMVALowPt"),float, doc="Low pt muon ID score",precision=14),
         fsrPhotonIdx = ExtVar(cms.InputTag("leptonFSRphotons:muFsrIndex"), "int16", doc="Index of the lowest-dR/ET2 among associated FSR photons"),
     ),
@@ -254,10 +252,10 @@ muonMCTable = cms.EDProducer("CandMCMatchTableProducer",
     docString = cms.string("MC matching to status==1 muons"),
 )
 
-muonTask = cms.Task(slimmedMuonsUpdated,isoForMu,ptRatioRelForMu,slimmedMuonsWithUserData,finalMuons,finalLooseMuons )
+muonTask = cms.Task(slimmedMuonsUpdated,isoForMu,ptRatioRelForMu,slimmedMuonsWithUserData,finalMuons,finalLooseMuons)
 muonMCTask = cms.Task(muonsMCMatchForTable,muonMCTable)
-muonTablesTask = cms.Task(muonMVATTH,muonTopLeptonMVA,muonMVALowPt,muonTable,muonMVAID)
+muonTablesTask = cms.Task(muonMVATTH,muonMVALowPt,muonTable,muonMVAID)
 
-
-
-
+_muonTask_Run2 = muonTask.copy()
+_muonTask_Run2.add(muonTopLeptonMVA)
+run2_muon.toReplaceWith(muonTask, _muonTask_Run2)

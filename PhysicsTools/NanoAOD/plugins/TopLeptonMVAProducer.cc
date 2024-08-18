@@ -32,7 +32,6 @@
 
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
-#include "DataFormats/PatCandidates/interface/Jet.h"
 
 #include <xgboost/c_api.h>
 
@@ -43,19 +42,19 @@ template <class T>
 class TopLeptonMVAProducer : public edm::stream::EDProducer<> {
 public:
   explicit TopLeptonMVAProducer(const edm::ParameterSet& iConfig) :
-      leptons_(consumes<edm::View<T>>(iConfig.getParameter<edm::InputTag>("leptons"))),
-      jetNDauCharged_(consumes<edm::View<float>>(iConfig.getParameter<edm::InputTag>("jetNDauCharged"))),
-      miniIsoChg_(consumes<edm::View<float>>(iConfig.getParameter<edm::InputTag>("miniIsoChg"))),
-      miniIsoAll_(consumes<edm::View<float>>(iConfig.getParameter<edm::InputTag>("miniIsoAll"))),
-      ptRel_(consumes<edm::View<float>>(iConfig.getParameter<edm::InputTag>("ptRel"))),
-      ptRatio_(consumes<edm::View<float>>(iConfig.getParameter<edm::InputTag>("ptRatio"))),
-      PFIsoAll_(consumes<edm::View<float>>(iConfig.getParameter<edm::InputTag>("PFIsoAll"))),
-      jetForLepJetVar_(consumes<edm::View<reco::CandidatePtr>>(iConfig.getParameter<edm::InputTag>("jetForLepJetVar"))),
-      jets_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jets"))),
-      primaryVertices_(consumes<std::vector<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("primaryVertices"))) {
+      leptons_(consumes<std::vector<T>>(iConfig.getParameter<edm::InputTag>("leptons"))),
+      jetNDauCharged_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("jetNDauCharged"))),
+      miniIsoChg_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("miniIsoChg"))),
+      miniIsoAll_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("miniIsoAll"))),
+      ptRel_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("ptRel"))),
+      ptRatio_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("ptRatio"))),
+      jetBtag_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("jetBtag"))),
+      jetForLepJetVar_(consumes<edm::ValueMap<reco::CandidatePtr>>(iConfig.getParameter<edm::InputTag>("jetForLepJetVar"))) {
 
     if (typeid(T) == typeid(pat::Electron)) {
-      mvaFall17V2noIso_ = consumes<edm::View<float>>(iConfig.getParameter<edm::InputTag>("mvaFall17V2noIso"));
+      PFIsoAll04_ = consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("PFIsoAll04"));
+      PFIsoAll_ = consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("PFIsoAll"));
+      mvaFall17V2noIso_ = consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("mvaFall17V2noIso"));
     }
 
     produces<edm::ValueMap<float>>("RAWv1");
@@ -65,9 +64,6 @@ public:
 
     weights_v1_ = iConfig.getParameter<edm::FileInPath>("weights_v1");
     weights_v2_ = iConfig.getParameter<edm::FileInPath>("weights_v2");
-    // features_v1_ = iConfig.getParameter<std::vector<std::string>>("features_v1");
-    // features_v2_ = iConfig.getParameter<std::vector<std::string>>("features_v2");
-
     XGBoosterCreate(NULL, 0, &booster_v1_);
     XGBoosterCreate(NULL, 0, &booster_v2_);
     XGBoosterLoadModel(booster_v1_, weights_v1_.fullPath().c_str());
@@ -82,25 +78,25 @@ private:
   void getMVAMu(edm::Event&) const;
 
   // ----------member data ---------------------------
-  edm::EDGetTokenT<edm::View<T>> leptons_;
-  edm::EDGetTokenT<edm::View<float>> jetNDauCharged_;
-  edm::EDGetTokenT<edm::View<float>> miniIsoChg_;
-  edm::EDGetTokenT<edm::View<float>> miniIsoAll_;
-  edm::EDGetTokenT<edm::View<float>> ptRel_;
-  edm::EDGetTokenT<edm::View<float>> ptRatio_;
-  edm::EDGetTokenT<edm::View<float>> PFIsoAll_;
-  edm::EDGetTokenT<edm::View<reco::CandidatePtr>> jetForLepJetVar_;
-  edm::EDGetTokenT<edm::View<pat::Jet>> jets_;
-  edm::EDGetTokenT<std::vector<reco::Vertex>> primaryVertices_;
-  edm::EDGetTokenT<edm::View<float>> mvaFall17V2noIso_;
+  edm::EDGetTokenT<std::vector<T>> leptons_;
+  edm::EDGetTokenT<edm::ValueMap<float>> jetNDauCharged_;
+  edm::EDGetTokenT<edm::ValueMap<float>> miniIsoChg_;
+  edm::EDGetTokenT<edm::ValueMap<float>> miniIsoAll_;
+  edm::EDGetTokenT<edm::ValueMap<float>> ptRel_;
+  edm::EDGetTokenT<edm::ValueMap<float>> ptRatio_;
+  edm::EDGetTokenT<edm::ValueMap<float>> PFIsoAll04_;
+  edm::EDGetTokenT<edm::ValueMap<float>> PFIsoAll_;
+  edm::EDGetTokenT<edm::ValueMap<float>> jetBtag_;
+  edm::EDGetTokenT<edm::ValueMap<float>> mvaFall17V2noIso_;
+  edm::EDGetTokenT<edm::ValueMap<reco::CandidatePtr>> jetForLepJetVar_;
 
   edm::FileInPath weights_v1_;
   edm::FileInPath weights_v2_;
-  // std::vector<std::string> features_v1_;
-  // std::vector<std::string> features_v2_;
   BoosterHandle booster_v1_;
   BoosterHandle booster_v2_;
 
+  const float workingPoints_v1[4] = {0.20, 0.41, 0.64, 0.81};
+  const float workingPoints_v2[4] = {0.59, 0.81, 0.90, 0.94};
 };
 
 // ------------ method called to produce the data  ------------
@@ -113,10 +109,28 @@ void TopLeptonMVAProducer<T>::produce(edm::Event& iEvent, const edm::EventSetup&
 
 template <>
 void TopLeptonMVAProducer<pat::Electron>::getMVAEle(edm::Event& iEvent) const {
-  edm::Handle<edm::View<pat::Electron>> electrons;
-  edm::Handle<edm::View<pat::Jet>> jets;
+  edm::Handle<std::vector<pat::Electron>> electrons;
+  edm::Handle<edm::ValueMap<float>> jetNDauChargedVM;
+  edm::Handle<edm::ValueMap<float>> miniIsoChgVM;
+  edm::Handle<edm::ValueMap<float>> miniIsoAllVM;
+  edm::Handle<edm::ValueMap<float>> ptRelVM;
+  edm::Handle<edm::ValueMap<float>> ptRatioVM;
+  edm::Handle<edm::ValueMap<float>> PFIsoAll04VM;
+  edm::Handle<edm::ValueMap<float>> PFIsoAllVM;
+  edm::Handle<edm::ValueMap<float>> jetBtagVM;
+  edm::Handle<edm::ValueMap<float>> mvaFall17V2noIsoVM;
+  edm::Handle<edm::ValueMap<reco::CandidatePtr>> jetForLepJetVarVM;
   iEvent.getByToken(leptons_, electrons);
-  iEvent.getByToken(jets_, jets);
+  iEvent.getByToken(jetNDauCharged_, jetNDauChargedVM);
+  iEvent.getByToken(miniIsoChg_, miniIsoChgVM);
+  iEvent.getByToken(miniIsoAll_, miniIsoAllVM);
+  iEvent.getByToken(ptRel_, ptRelVM);
+  iEvent.getByToken(ptRatio_, ptRatioVM);
+  iEvent.getByToken(PFIsoAll04_, PFIsoAll04VM);
+  iEvent.getByToken(PFIsoAll_, PFIsoAllVM);
+  iEvent.getByToken(jetBtag_, jetBtagVM);
+  iEvent.getByToken(mvaFall17V2noIso_, mvaFall17V2noIsoVM);
+  iEvent.getByToken(jetForLepJetVar_, jetForLepJetVarVM);
 
   std::vector<float> MVAv1;
   std::vector<float> MVAv2;
@@ -127,17 +141,80 @@ void TopLeptonMVAProducer<pat::Electron>::getMVAEle(edm::Event& iEvent) const {
   WPv1.reserve(electrons->size());
   WPv2.reserve(electrons->size());
 
-for (const pat::Electron& electron : *electrons) {
-  float pt = electron.pt();
-  float absEta = std::abs(electron.eta());
-  //
-}
+  const int nFeatures_v1 = 13;
+  const int nFeatures_v2 = 14;
+  for (unsigned int iEle = 0; iEle < electrons->size(); iEle++) {
+    const pat::ElectronRef eleRef(electrons, iEle);
 
-  for (unsigned int i = 0; i < electrons->size(); i++) {
-    MVAv1.push_back(0.1*(float)i);
-    MVAv2.push_back(0.2*(float)i);
-    WPv1.push_back(i);
-    WPv2.push_back(i*2);
+    float pt = eleRef->pt();
+    float absEta = std::abs(eleRef->eta());
+    float jetNDauCharged = (*jetNDauChargedVM)[eleRef];
+    float miniPFRelIso_chg = (*miniIsoChgVM)[eleRef] / pt;
+    float miniPFRelIso_neu = (*miniIsoAllVM)[eleRef] / pt - miniPFRelIso_chg;
+    float jetPtRelv2 = (*jetForLepJetVarVM)[eleRef].isNonnull() ? (*ptRelVM)[eleRef] : 0;
+    float jetPtRatio = (*jetForLepJetVarVM)[eleRef].isNonnull() ? std::min((double)(*ptRatioVM)[eleRef], 1.5) : 1.0 / (1.0 + (*PFIsoAll04VM)[eleRef] / pt);
+    float pfRelIso03_all = (*PFIsoAllVM)[eleRef] / pt;
+    float jetBtag = (*jetForLepJetVarVM)[eleRef].isNonnull() ? std::max((double)(*jetBtagVM)[eleRef], 0.0) : 0.0;
+    float sip3d = eleRef->dB(pat::Electron::PV3D) / eleRef->dB(pat::Electron::PV3D);
+    float dxy = eleRef->dB(pat::Electron::PV2D);
+    float dz = eleRef->dB(pat::Electron::PVDZ);
+    float mvaFall17V2noIso = (*mvaFall17V2noIsoVM)[eleRef];
+    float lostHits = eleRef->gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS);
+
+    float features_v1[1][nFeatures_v1];
+    features_v1[0][0] = pt;
+    features_v1[0][1] = absEta;
+    features_v1[0][2] = jetNDauCharged;
+    features_v1[0][3] = miniPFRelIso_chg;
+    features_v1[0][4] = miniPFRelIso_neu;
+    features_v1[0][5] = jetPtRelv2;
+    features_v1[0][6] = jetPtRatio;
+    features_v1[0][7] = pfRelIso03_all;
+    features_v1[0][8] = jetBtag;
+    features_v1[0][9] = sip3d;
+    features_v1[0][10] = dxy;
+    features_v1[0][11] = dz;
+    features_v1[0][12] = mvaFall17V2noIso;
+    DMatrixHandle dtest_v1;
+    XGDMatrixCreateFromMat((float*)features_v1, 1, nFeatures_v1, NAN, &dtest_v1);
+    unsigned long out_len_v1;
+    const float *raw_v1;
+    XGBoosterPredict(booster_v1_, dtest_v1, 0, 0, 0, &out_len_v1, &raw_v1);
+    XGDMatrixFree(dtest_v1);
+    int wp_v1 = 0;
+    for (const float &wp : workingPoints_v1) {
+      if (*raw_v1 > wp) wp_v1 += 1;
+    }
+    MVAv1.push_back(*raw_v1);
+    WPv1.push_back(wp_v1);
+
+    float features_v2[1][nFeatures_v2];
+    features_v2[0][0] = pt;
+    features_v2[0][1] = absEta;
+    features_v2[0][2] = jetNDauCharged;
+    features_v2[0][3] = miniPFRelIso_chg;
+    features_v2[0][4] = miniPFRelIso_neu;
+    features_v2[0][5] = jetPtRelv2;
+    features_v2[0][6] = jetPtRatio;
+    features_v2[0][7] = pfRelIso03_all;
+    features_v2[0][8] = jetBtag;
+    features_v2[0][9] = sip3d;
+    features_v2[0][10] = dxy;
+    features_v2[0][11] = dz;
+    features_v2[0][12] = mvaFall17V2noIso;
+    features_v2[0][13] = lostHits;
+    DMatrixHandle dtest_v2;
+    XGDMatrixCreateFromMat((float*)features_v2, 1, nFeatures_v2, NAN, &dtest_v2);
+    unsigned long out_len_v2;
+    const float *raw_v2;
+    XGBoosterPredict(booster_v2_, dtest_v2, 0, 0, 0, &out_len_v2, &raw_v2);
+    XGDMatrixFree(dtest_v2);
+    int wp_v2 = 0;
+    for (const float &wp : workingPoints_v2) {
+      if (*raw_v2 > wp) wp_v2 += 1;
+    }
+    MVAv2.push_back(*raw_v2);
+    WPv2.push_back(wp_v2);
   }
 
   auto MVAv1_out = std::make_unique<edm::ValueMap<float>>();
@@ -165,10 +242,8 @@ for (const pat::Electron& electron : *electrons) {
 
 template <>
 void TopLeptonMVAProducer<pat::Muon>::getMVAMu(edm::Event& iEvent) const {
-  edm::Handle<edm::View<pat::Muon>> muons;
-  edm::Handle<edm::View<pat::Jet>> jets;
+  edm::Handle<std::vector<pat::Muon>> muons;
   iEvent.getByToken(leptons_, muons);
-  iEvent.getByToken(jets_, jets);
 
   std::vector<float> MVAv1;
   std::vector<float> MVAv2;
@@ -178,6 +253,10 @@ void TopLeptonMVAProducer<pat::Muon>::getMVAMu(edm::Event& iEvent) const {
   MVAv2.reserve(muons->size());
   WPv1.reserve(muons->size());
   WPv2.reserve(muons->size());
+
+  for (unsigned int iMu = 0; iMu < muons->size(); iMu++) {
+    const pat::MuonRef muRef(muons, iMu);
+  }
 
   for (unsigned int i = 0; i < muons->size(); i++) {
     MVAv1.push_back(0.3*(float)i);
@@ -221,26 +300,25 @@ void TopLeptonMVAProducer<pat::Electron>::getMVAMu(edm::Event& iEvent) const {}
 template <typename T>
 void TopLeptonMVAProducer<T>::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
-  desc.add<edm::FileInPath>("weights_v1")->setComment("json file containing weights for v1");
-  desc.add<edm::FileInPath>("weights_v2")->setComment("json file containing weights for v2");
-  // desc.add<std::vector<std::string>>("features_v1")->setComment("features for v1");
-  // desc.add<std::vector<std::string>>("features_v2")->setComment("features for v2");
-
   desc.add<edm::InputTag>("leptons")->setComment("lepton collection");
   desc.add<edm::InputTag>("jetNDauCharged")->setComment("number of charged daughters of the closest jet");
   desc.add<edm::InputTag>("miniIsoChg")->setComment("charged component of mini PF isolation");
   desc.add<edm::InputTag>("miniIsoAll")->setComment("total mini PF isolation");
   desc.add<edm::InputTag>("ptRel")->setComment("relative momentum of the lepton with respect to the closest jet after subtracting the lepton");
   desc.add<edm::InputTag>("ptRatio")->setComment("min(1 / (jetRelIso + 1), 1.5)");
-  desc.add<edm::InputTag>("PFIsoAll")->setComment("PF relative isolation dR=0.3");
+  desc.add<edm::InputTag>("jetBtag")->setComment("b-tag of the closest jet");
   desc.add<edm::InputTag>("jetForLepJetVar")->setComment("closest jet");
-  desc.add<edm::InputTag>("jets")->setComment("input jet collection");
-  desc.add<edm::InputTag>("primaryVertices")->setComment("primary vertex collection");
+  // For electrons only
+  desc.addOptional<edm::InputTag>("PFIsoAll")->setComment("PF relative isolation dR=0.3");
+  desc.addOptional<edm::InputTag>("PFIsoAll04")->setComment("PF relative isolation dR=0.4");
   desc.addOptional<edm::InputTag>("mvaFall17V2noIso")->setComment("MVA noIso ID V2 score");
+
+  desc.add<edm::FileInPath>("weights_v1")->setComment("json file containing weights for v1");
+  desc.add<edm::FileInPath>("weights_v2")->setComment("json file containing weights for v2");
 
   std::string prodname;
   if (typeid(T) == typeid(pat::Muon))
-    prodname += "Muon";
+    prodname += "Mu";
   else if (typeid(T) == typeid(pat::Electron))
     prodname += "Ele";
   prodname += "TopLeptonMVAProducer";
