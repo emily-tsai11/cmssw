@@ -53,7 +53,7 @@ public:
     produces<edm::ValueMap<float>>("ptRatio");
     produces<edm::ValueMap<float>>("ptRel");
     produces<edm::ValueMap<float>>("jetNDauChargedMVASel");
-    produces<edm::ValueMap<float>>("jetBtag");
+    produces<edm::ValueMap<float>>("jetBTag");
     produces<edm::ValueMap<reco::CandidatePtr>>("jetForLepJetVar");
 
     bDiscLabel_ = iConfig.getParameter<std::string>("bDiscLabel");
@@ -102,7 +102,7 @@ void LeptonJetVarProducer<T>::produce(edm::StreamID streamID, edm::Event& iEvent
   std::vector<float> ptRatio(nLep, -1);
   std::vector<float> ptRel(nLep, -1);
   std::vector<float> jetNDauChargedMVASel(nLep, 0);
-  std::vector<float> jetBtag(nLep, -1);
+  std::vector<float> jetBTag(nLep, -1);
   std::vector<reco::CandidatePtr> jetForLepJetVar(nLep, reco::CandidatePtr());
 
   const auto& pv = vtxProd.at(0);
@@ -116,7 +116,7 @@ void LeptonJetVarProducer<T>::produce(edm::StreamID streamID, edm::Event& iEvent
         ptRatio[il] = std::get<0>(res);
         ptRel[il] = std::get<1>(res);
         jetNDauChargedMVASel[il] = std::get<2>(res);
-        jetBtag[il] = jet->bDiscriminator(bDiscLabel_);
+        jetBTag[il] = jet->bDiscriminator(bDiscLabel_);
         jetForLepJetVar[il] = jet;
         break;  // take leading jet with shared source candidates
       }
@@ -141,11 +141,11 @@ void LeptonJetVarProducer<T>::produce(edm::StreamID streamID, edm::Event& iEvent
   fillerNDau.fill();
   iEvent.put(std::move(jetNDauChargedMVASelV), "jetNDauChargedMVASel");
 
-  auto jetBtagV = std::make_unique<edm::ValueMap<float>>();
-  edm::ValueMap<float>::Filler fillerBtag(*jetBtagV);
-  fillerBtag.insert(srcLep, jetBtag.begin(), jetBtag.end());
+  auto jetBTagV = std::make_unique<edm::ValueMap<float>>();
+  edm::ValueMap<float>::Filler fillerBtag(*jetBTagV);
+  fillerBtag.insert(srcLep, jetBTag.begin(), jetBTag.end());
   fillerBtag.fill();
-  iEvent.put(std::move(jetBtagV), "jetBtag");
+  iEvent.put(std::move(jetBTagV), "jetBTag");
 
   auto jetForLepJetVarV = std::make_unique<edm::ValueMap<reco::CandidatePtr>>();
   edm::ValueMap<reco::CandidatePtr>::Filler fillerjetForLepJetVar(*jetForLepJetVarV);

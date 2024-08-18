@@ -39,7 +39,7 @@ muonTopLeptonMVA = cms.EDProducer("MuTopLeptonMVAProducer",
     miniIsoAll = cms.InputTag("isoForMu:miniIsoAll"),
     ptRel = cms.InputTag("ptRatioRelForMu:ptRel"),
     ptRatio = cms.InputTag("ptRatioRelForMu:ptRatio"),
-    jetBtag = cms.InputTag("ptRatioRelForMu:jetBtag"),
+    jetBTag = cms.InputTag("ptRatioRelForMu:jetBTag"),
     jetForLepJetVar = cms.InputTag("ptRatioRelForMu:jetForLepJetVar"), # WARNING: ptr is null if no match is found
 )
 (run2_muon_2016 & tracker_apv_vfp30_2016).toModify(
@@ -96,7 +96,9 @@ slimmedMuonsWithUserData = cms.EDProducer("PATMuonUserDataEmbedder",
         miniIsoAll = cms.InputTag("isoForMu:miniIsoAll"),
         ptRatio = cms.InputTag("ptRatioRelForMu:ptRatio"),
         ptRel = cms.InputTag("ptRatioRelForMu:ptRel"),
+        jetBTag = cms.InputTag("ptRatioRelForMu:jetBTag"),
         jetNDauChargedMVASel = cms.InputTag("ptRatioRelForMu:jetNDauChargedMVASel"),
+        jetPtRatio = cms.InputTag("muonTopLeptonMVA:jetPtRatio"),
         rawTopLeptonMVAv1 = cms.InputTag("muonTopLeptonMVA:RAWv1"),
         rawTopLeptonMVAv2 = cms.InputTag("muonTopLeptonMVA:RAWv2"),
         mvaIDMuon_wpMedium = cms.InputTag("muonMVAID:wpMedium"),
@@ -208,10 +210,6 @@ muonTable = simpleCandidateFlatTableProducer.clone(
         triggerIdLoose = Var("passed('TriggerIdLoose')",bool,doc="TriggerIdLoose ID"),
         inTimeMuon = Var("passed('InTimeMuon')",bool,doc="inTimeMuon ID"),
         jetNDauCharged = Var("?userCand('jetForLepJetVar').isNonnull()?userFloat('jetNDauChargedMVASel'):0", "uint8", doc="number of charged daughters of the closest jet"),
-        rawTopLeptonMVAv1 = Var("userFloat('rawTopLeptonMVAv1')", float, doc="top lepton MVA v1 muon score", precision=14),
-        rawTopLeptonMVAv2 = Var("userFloat('rawTopLeptonMVAv2')", float, doc="top lepton MVA v2 muon score", precision=14),
-        idTopLeptonMVAv1 = Var("userInt('idTopLeptonMVAv1')", int, doc="top lepton MVA v1 muon working point"),
-        idTopLeptonMVAv2 = Var("userInt('idTopLeptonMVAv2')", int, doc="top lepton MVA v2 muon working point"),
     ),
     externalVariables = cms.PSet(
         mvaTTH = ExtVar(cms.InputTag("muonMVATTH"),float, doc="TTH MVA lepton ID score",precision=14),
@@ -224,6 +222,16 @@ muonTable = simpleCandidateFlatTableProducer.clone(
 (run2_nanoAOD_106Xv2 | run3_nanoAOD_122).toModify(muonTable.variables,mvaMuID=None).toModify(
      muonTable.variables, mvaMuID = Var("userFloat('mvaIDMuon')", float, doc="MVA-based ID score",precision=6))
 
+run2_muon.toModify(
+    muonTable.variables,
+    mvaMuID = Var("userFloat('mvaIDMuon')", float, doc="MVA-based ID score", precision=6),
+    jetBTag = Var("userFloat('jetBTag')", float, doc="b-tag of the closest jet", precision=14),
+    jetPtRatio = Var("userFloat('jetPtRatio')", float, doc="jet pt ratio with muon", precision=14),
+    rawTopLeptonMVAv1 = Var("userFloat('rawTopLeptonMVAv1')", float, doc="top lepton MVA v1 muon score", precision=14),
+    rawTopLeptonMVAv2 = Var("userFloat('rawTopLeptonMVAv2')", float, doc="top lepton MVA v2 muon score", precision=14),
+    idTopLeptonMVAv1 = Var("userInt('idTopLeptonMVAv1')", int, doc="top lepton MVA v1 muon working point"),
+    idTopLeptonMVAv2 = Var("userInt('idTopLeptonMVAv2')", int, doc="top lepton MVA v2 muon working point"),
+)
 
 # Revert back to AK4 CHS jets for Run 2
 # run2_nanoAOD_ANY.toModify(
