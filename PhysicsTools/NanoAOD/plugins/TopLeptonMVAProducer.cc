@@ -161,8 +161,8 @@ void TopLeptonMVAProducer<pat::Electron>::getMVAEle(edm::Event& iEvent) const {
     float pfRelIso03_all = (*PFIsoAllVM)[eleRef] / pt;
     float jetBTag = (*jetForLepJetVarVM)[eleRef].isNonnull() ? std::max((double)(*jetBTagVM)[eleRef], 0.0) : 0.0;
     float sip3d = eleRef->dB(pat::Electron::PV3D) / eleRef->edB(pat::Electron::PV3D);
-    float dxy = eleRef->dB(pat::Electron::PV2D);
-    float dz = eleRef->dB(pat::Electron::PVDZ);
+    float logAbsDxy = std::log(std::abs(eleRef->dB(pat::Electron::PV2D)));
+    float logAbsDz = std::log(std::abs(eleRef->dB(pat::Electron::PVDZ)));
     float mvaFall17V2noIso = (*mvaFall17V2noIsoVM)[eleRef];
     float lostHits = eleRef->gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS);
 
@@ -179,8 +179,8 @@ void TopLeptonMVAProducer<pat::Electron>::getMVAEle(edm::Event& iEvent) const {
     features_v1[0][7] = pfRelIso03_all;
     features_v1[0][8] = jetBTag;
     features_v1[0][9] = sip3d;
-    features_v1[0][10] = dxy;
-    features_v1[0][11] = dz;
+    features_v1[0][10] = logAbsDxy;
+    features_v1[0][11] = logAbsDz;
     features_v1[0][12] = mvaFall17V2noIso;
     DMatrixHandle dtest_v1;
     XGDMatrixCreateFromMat((float*)features_v1, 1, nFeatures_v1, NAN, &dtest_v1);
@@ -206,8 +206,8 @@ void TopLeptonMVAProducer<pat::Electron>::getMVAEle(edm::Event& iEvent) const {
     features_v2[0][7] = pfRelIso03_all;
     features_v2[0][8] = jetBTag;
     features_v2[0][9] = sip3d;
-    features_v2[0][10] = dxy;
-    features_v2[0][11] = dz;
+    features_v2[0][10] = logAbsDxy;
+    features_v2[0][11] = logAbsDz;
     features_v2[0][12] = mvaFall17V2noIso;
     features_v2[0][13] = lostHits;
     DMatrixHandle dtest_v2;
@@ -300,8 +300,8 @@ void TopLeptonMVAProducer<pat::Muon>::getMVAMu(edm::Event& iEvent) const {
         + muRef->pfIsolationR03().sumPhotonEt - muRef->pfIsolationR03().sumPUPt / 2.0, 0.0)) / pt;
     float jetBTag = (*jetForLepJetVarVM)[muRef].isNonnull() ? std::max((double)(*jetBTagVM)[muRef], 0.0) : 0.0;
     float sip3d = muRef->dB(pat::Muon::PV3D) / muRef->edB(pat::Muon::PV3D);
-    float dxy = muRef->dB(pat::Muon::PV2D);
-    float dz = muRef->dB(pat::Muon::PVDZ);
+    float logAbsDxy = std::log(std::abs(muRef->dB(pat::Muon::PV2D)));
+    float logAbsDz = std::log(std::abs(muRef->dB(pat::Muon::PVDZ)));
     float segmentComp = muRef->segmentCompatibility();
 
     muJetPtRatio.push_back(jetPtRatio);
@@ -317,8 +317,8 @@ void TopLeptonMVAProducer<pat::Muon>::getMVAMu(edm::Event& iEvent) const {
     features[0][7] = pfRelIso03_all;
     features[0][8] = jetBTag;
     features[0][9] = sip3d;
-    features[0][10] = dxy;
-    features[0][11] = dz;
+    features[0][10] = logAbsDxy;
+    features[0][11] = logAbsDz;
     features[0][12] = segmentComp;
 
     DMatrixHandle dtest_v1;
