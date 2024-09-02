@@ -5,6 +5,8 @@ RecoMTDAOD = cms.PSet(
     outputCommands = cms.untracked.vstring(
         'keep intedmValueMap_trackExtenderWithMTD_*_*',
         'keep floatedmValueMap_trackExtenderWithMTD_*_*',
+        'keep intedmValueMap_trackExtenderFromPointWithMTD_*_*',
+        'keep floatedmValueMap_trackExtenderFromPointWithMTD_*_*',
         'keep *_mtdTrackQualityMVA_*_*')
 )
 
@@ -13,6 +15,7 @@ RecoMTDRECO = cms.PSet(
     outputCommands = cms.untracked.vstring(
          'keep recoTrack*_trackExtenderWithMTD_*_*',
          'keep TrackingRecHitsOwned_trackExtenderWithMTD_*_*',
+         'keep TrackingRecHitsOwned_trackExtenderFromPointWithMTD_*_*',
     )
 )
 RecoMTDRECO.outputCommands.extend(RecoMTDAOD.outputCommands)

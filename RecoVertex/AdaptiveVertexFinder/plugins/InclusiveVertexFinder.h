@@ -54,6 +54,9 @@ public:
       pdesc.add<unsigned int>("minHits", 8);
     } else if (std::is_same<VTX, reco::VertexCompositePtrCandidate>::value) {
       pdesc.add<edm::InputTag>("tracks", edm::InputTag("particleFlow"));
+      pdesc.add<edm::InputTag>("trackTimeValues", edm::InputTag("trackExtenderFromPointWithMTD", "generalTrackt0"));
+      pdesc.add<edm::InputTag>("trackTimeErrors", edm::InputTag("trackExtenderFromPointWithMTD", "generalTracksigmat0"));
+      pdesc.add<bool>("useMTDTrackTime", false);
       pdesc.add<unsigned int>("minHits", 0);
     } else {
       pdesc.add<edm::InputTag>("tracks", edm::InputTag("generalTracks"));
@@ -111,6 +114,8 @@ private:
   edm::EDGetTokenT<reco::BeamSpot> token_beamSpot;
   edm::EDGetTokenT<reco::VertexCollection> token_primaryVertex;
   edm::EDGetTokenT<InputContainer> token_tracks;
+  edm::EDGetTokenT<edm::ValueMap<float>> token_trackTimeValues;
+  edm::EDGetTokenT<edm::ValueMap<float>> token_trackTimeErrors;
   edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> token_trackBuilder;
   unsigned int minHits;
   unsigned int maxNTracks;
@@ -125,6 +130,7 @@ private:
   double fitterRatio;
   bool useVertexFitter;
   bool useVertexReco;
+  bool useMTDTrackTime;
   std::unique_ptr<VertexReconstructor> vtxReco;
   std::unique_ptr<TracksClusteringFromDisplacedSeed> clusterizer;
 };
@@ -152,6 +158,11 @@ TemplatedInclusiveVertexFinder<InputContainer, VTX>::TemplatedInclusiveVertexFin
   token_tracks = consumes<InputContainer>(params.getParameter<edm::InputTag>("tracks"));
   token_trackBuilder =
       esConsumes<TransientTrackBuilder, TransientTrackRecord>(edm::ESInputTag("", "TransientTrackBuilder"));
+  if (std::is_same<VTX, reco::VertexCompositePtrCandidate>::value) {
+    token_trackTimeValues = consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("trackTimeValues"));
+    token_trackTimeErrors = consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("trackTimeErrors"));
+    useMTDTrackTime = params.getParameter<bool>("useMTDTrackTime");
+  }
   produces<Product>();
   //produces<reco::VertexCollection>("multi");
 }
@@ -186,6 +197,14 @@ void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &ev
 
   edm::Handle<InputContainer> tracks;
   event.getByToken(token_tracks, tracks);
+
+  if (std::is_same<VTX, reco::VertexCompositePtrCandidate>::value && useMTDTrackTime) {
+    edm::Handle<edm::ValueMap<float>> edm_trackTimeValues;
+    event.getByToken(token_trackTimeValues, edm_trackTimeValues);
+
+    edm::Handle<edm::ValueMap<float>> edm_trackTimeErrors;
+    event.getByToken(token_trackTimeErrors, edm_trackTimeErrors);
+  }
 
   edm::ESHandle<TransientTrackBuilder> trackBuilder = es.getHandle(token_trackBuilder);
 
