@@ -87,10 +87,10 @@ def dumpDebug(process, debug):
     return process
 
 
-setMaxEvents(process, 10)
-setInputFileName(process, "file:/eos/user/e/etsai/workspace/TTToHadronicNoPU_ReReco_CMSSW_13_1_0/src/RecoVertex/AdaptiveVertexFinder/test/TTToHadronic_noPU_originalDAS.root")
+setMaxEvents(process, -1)
+# setInputFileName(process, "file:/eos/user/e/etsai/workspace/TTToHadronicNoPU_ReReco_CMSSW_13_1_0/src/RecoVertex/AdaptiveVertexFinder/test/TTToHadronic_noPU_originalDAS.root")
 setOutputFileName(process, "TTToHadronic_noPU_slimmed.root")
 addMergedGenParticles(process)
 addMTDTrackTimingToSVReco(process)
 dropKeepBranches(process)
-dumpDebug(process, True)
+dumpDebug(process, False)

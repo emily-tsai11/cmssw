@@ -637,6 +637,7 @@ void TrackExtenderFromPointWithMTDT<TrackCollection>::fillValueMap(edm::Event& i
 
 template <class TrackCollection>
 void TrackExtenderFromPointWithMTDT<TrackCollection>::produce(edm::Event& ev, const edm::EventSetup& es) {
+  // std::cout << "TrackExtenderFromPointWithMTD" << std::endl;
   //this produces pieces of the track extra
   Traj2TrackHits t2t;
 
@@ -715,6 +716,7 @@ void TrackExtenderFromPointWithMTDT<TrackCollection>::produce(edm::Event& ev, co
   std::vector<unsigned> track_indices;
   unsigned itrack = 0;
 
+  // bool printedPV = false;
   for (const auto& trjtrk : trjtrks) {
     const Trajectory& trajs = *trjtrk.key;
     const reco::TrackRef& track = trjtrk.val;
@@ -745,6 +747,12 @@ void TrackExtenderFromPointWithMTDT<TrackCollection>::produce(edm::Event& ev, co
       auto const& vtxs = ev.get(vtxToken_);
       if (!vtxs.empty()) {
         pv = &vtxs[0];
+        // if (!printedPV) {
+        //   std::cout << pv->x() << " " << pv->xError() << " "
+        //             << pv->y() << " " << pv->yError() << " "
+        //             << pv->z() << " " << pv->zError() << std::endl;
+        //   printedPV = true;
+        // }
         tscp_status = getTrajectoryStateClosestToPoint(trajs, pv->position(), prop, tscp);
       }
 
@@ -808,6 +816,18 @@ void TrackExtenderFromPointWithMTDT<TrackCollection>::produce(edm::Event& ev, co
       float pathLength = 0.f, tmtd = 0.f, sigmatmtd = -1.f, tofpi = 0.f, tofk = 0.f, tofp = 0.f;
       LogTrace("TrackExtenderFromPointWithMTD") << "Refit track " << itrack << " p/pT = " << track->p() << " " << track->pt()
                                        << " eta = " << track->eta();
+      // TrackingRecHit::ConstRecHitContainer trjRecHits = trj.recHits();
+      // std::cout << trjRecHits.size() << std::endl;
+      // for (TrackingRecHit::ConstRecHitPointer trjRecHit : trjRecHits) {
+      //   if (!trjRecHit->isValid()) continue;
+      //   std::cout << "PV "
+      //             << trjRecHit->globalPosition().x() << " "
+      //             << sqrt(trjRecHit->globalPositionError().cxx()) << " "
+      //             << trjRecHit->globalPosition().y() << " "
+      //             << sqrt(trjRecHit->globalPositionError().cyy()) << " "
+      //             << trjRecHit->globalPosition().z() << " "
+      //             << sqrt(trjRecHit->globalPositionError().czz()) << std::endl;
+      // }
       reco::Track result = buildTrack(track,
                                       thetrj,
                                       trj,
@@ -860,10 +880,12 @@ void TrackExtenderFromPointWithMTDT<TrackCollection>::produce(edm::Event& ev, co
         }
         npixBarrel.push_back(backtrack.hitPattern().numberOfValidPixelBarrelHits());
         npixEndcap.push_back(backtrack.hitPattern().numberOfValidPixelEndcapHits());
+        // std::cout << &trjtrk << " " << t0Map << " " << sigmat0Map << std::endl;
         LogTrace("TrackExtenderFromPointWithMTD") << "tmtd " << tmtdMap << " +/- " << sigmatmtdMap << " t0 " << t0Map << " +/- "
                                          << sigmat0Map << " tof pi/K/p " << tofpiMap << " " << tofkMap << " "
                                          << tofpMap;
       } else {
+        // std::cout << 0.0 << " " << -1.0 << std::endl;
         LogTrace("TrackExtenderFromPointWithMTD") << "Error in the MTD track refitting. This should not happen";
       }
     }
