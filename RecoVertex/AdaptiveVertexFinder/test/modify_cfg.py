@@ -50,8 +50,11 @@ def dropKeepBranches(process):
         "keep SimTracks_g4SimHits__SIM", # for further "reconstructable" vertex definition
         "keep recoGenParticles_mergedGenParticles__BTV", # for "reconstructable" GenVertex definition
         "keep recoPFCandidates_particleFlow__BTV", # input to IVF
-        "keep recoVertexCompositePtrCandidates_inclusiveCandidateSecondaryVertices*_*_BTV", # input to slimming
-        "keep recoVertexCompositePtrCandidates_inclusiveCandidateSecondaryVerticesCvsL_*_BTV", # NOT input to slimming
+        "keep recoVertexs_offlineSlimmedPrimaryVertices__BTV", # for calculating impact parameters
+        "keep *_inclusiveCandidateVertexFinder*_*_BTV", # before merging to get nClusters
+        "keep *_inclusiveCandidateVertexFinderCvsL_*_BTV", # before merging to get nClusters
+        "keep recoVertexCompositePtrCandidates_inclusiveCandidateSecondaryVertices*__BTV", # input to slimming
+        "keep recoVertexCompositePtrCandidates_inclusiveCandidateSecondaryVerticesCvsL__BTV", # NOT input to slimming
         "keep recoVertexCompositePtrCandidates_slimmedSecondaryVertices*__BTV",
         "keep recoGenJets_slimmedGenJets__BTV",
         "keep patJets_slimmedJets__BTV",
