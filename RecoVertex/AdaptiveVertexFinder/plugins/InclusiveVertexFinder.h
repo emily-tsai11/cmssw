@@ -163,6 +163,7 @@ TemplatedInclusiveVertexFinder<InputContainer, VTX>::TemplatedInclusiveVertexFin
     token_trackTimeErrors = consumes<edm::ValueMap<float>>(params.getParameter<edm::InputTag>("trackTimeErrors"));
     useMTDTrackTime = params.getParameter<bool>("useMTDTrackTime");
   }
+  produces<unsigned int>("nClusters");
   produces<Product>();
   //produces<reco::VertexCollection>("multi");
 }
@@ -209,6 +210,7 @@ void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &ev
   edm::ESHandle<TransientTrackBuilder> trackBuilder = es.getHandle(token_trackBuilder);
 
   auto recoVertices = std::make_unique<Product>();
+  unsigned nClusters = 0;
   if (!primaryVertices->empty()) {
     const reco::Vertex &pv = (*primaryVertices)[0];
     GlobalPoint ppv(pv.position().x(), pv.position().y(), pv.position().z());
@@ -253,6 +255,7 @@ void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &ev
 
     std::cout << "CLUSTERS " << clusters.size() << std::endl;
 #endif
+    nClusters = clusters.size();
 
     for (std::vector<TracksClusteringFromDisplacedSeed::Cluster>::iterator cluster = clusters.begin();
          cluster != clusters.end();
@@ -320,6 +323,7 @@ void TemplatedInclusiveVertexFinder<InputContainer, VTX>::produce(edm::Event &ev
 #endif
   }
 
+  event.put(std::make_unique<unsigned int>(nClusters), "nClusters");
   event.put(std::move(recoVertices));
 }
 #endif
