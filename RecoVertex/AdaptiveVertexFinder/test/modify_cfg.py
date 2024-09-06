@@ -56,6 +56,7 @@ def dropKeepBranches(process):
         "keep recoVertexCompositePtrCandidates_inclusiveCandidateSecondaryVertices*__BTV", # input to slimming
         "keep recoVertexCompositePtrCandidates_inclusiveCandidateSecondaryVerticesCvsL__BTV", # NOT input to slimming
         "keep recoVertexCompositePtrCandidates_slimmedSecondaryVertices*__BTV",
+        "keep patPackedCandidates_packedPFCandidates__BTV", # for accessing track recoVertexCompositePtrCandidates CandidatePtr daughters
         "keep recoGenJets_slimmedGenJets__BTV",
         "keep patJets_slimmedJets__BTV",
         "keep recoJetFlavourInfoMatchingCollection_slimmedGenJetsFlavourInfos__BTV",

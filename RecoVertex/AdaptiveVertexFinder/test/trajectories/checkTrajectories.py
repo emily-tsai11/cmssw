@@ -1,6 +1,19 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as phs
+import matplotlib.lines as lin
+import sys
+sys.path.insert(0, "/eos/user/e/etsai/workspace/VertexNtuples_CMSSW_14_1_0_pre3/src/VertexNtuples/VertexNtuplizer/test/cmsstyle/src/cmsstyle")
+import cmsstyle as CMS
 
+
+# taken from MTD TDR
+btlRadius = 117.45 # cm
+otstz = 265.0 # cm
+etl1 = 303.8 # cm
+etl2 = 305.7 # cm
+# taken from tracker geometry:
+otRadius = 112.651 # cm
+otz = 267.325 # cm
 
 class Trajectory:
   def __init__(self, refPoint, refPointErr, refWidth, hitsX, hitsXerr, hitsY, hitsYerr, hitsZ, hitsZerr, trkRef, trkTime, trkTimeErr):
@@ -26,44 +39,93 @@ def plotTrajectories(trajBS, trajPV, iTrk):
   fillBS = "none"
   fmtPV = "^"
   fillPV = "none"
+  saveDir = "/eos/home-b/btvweb/www/Offline/Phase2/etsai/Phase2/Trajectory/"
 
   figXY = plt.figure()
   axXY = figXY.add_subplot()
-  bsXY = phs.Ellipse((trajBS.refPoint[0], trajBS.refPoint[1]), trajBS.refWidth[0], trajBS.refWidth[1], label="Beam Spot", fill=False, lw=1.5)
+  btl = phs.Ellipse((0, 0), btlRadius*2, btlRadius*2, fill=False, lw=1.5, ls="dashed", color="k")
+  axXY.add_patch(btl)
+  ot = phs.Ellipse((0, 0), otRadius*2, otRadius*2, fill=False, lw=1.5, ls="solid", color="k")
+  axXY.add_patch(ot)
+  bsXY = phs.Ellipse((trajBS.refPoint[0], trajBS.refPoint[1]), trajBS.refWidth[0], trajBS.refWidth[1], label="Beam Spot", fill=False, lw=1.5, color="k")
   axXY.add_patch(bsXY)
-  plt.errorbar(trajBS.hitsX, trajBS.hitsY, trajBS.hitsYerr, trajBS.hitsXerr, fmt=fmtBS, fillstyle=fillBS, label="BS extrapolation, "+timeBS)
-  plt.errorbar(trajPV.refPoint[0], trajPV.refPoint[1], trajPV.refPointErr[1], trajPV.refPointErr[0], ms=5, fmt="o", label="Primary Vertex")
-  plt.errorbar(trajPV.hitsX, trajPV.hitsY, trajPV.hitsYerr, trajPV.hitsXerr, fmt=fmtPV, fillstyle=fillPV, label="PV extrapolation, "+timePV)
+  plt.errorbar(trajBS.hitsX, trajBS.hitsY, trajBS.hitsYerr, trajBS.hitsXerr, fmt=fmtBS, fillstyle=fillBS, label="BS extrapolation, "+timeBS, color=CMS.petroff_8[1]) # orange
+  plt.errorbar(trajPV.refPoint[0], trajPV.refPoint[1], trajPV.refPointErr[1], trajPV.refPointErr[0], ms=5, fmt="o", label="Primary Vertex", color=CMS.petroff_8[2]) # red
+  plt.errorbar(trajPV.hitsX, trajPV.hitsY, trajPV.hitsYerr, trajPV.hitsXerr, fmt=fmtPV, fillstyle=fillPV, label="PV extrapolation, "+timePV, color=CMS.petroff_8[0]) # blue
+  plt.arrow(-90, 0, -btlRadius+98, 0, width=1.5)
+  plt.text(-88, -2.5, "MTD barrel")
+  plt.text(-100, -50, "Outer Tracker barrel")
   plt.legend()
   plt.xlabel("x [cm]")
   plt.ylabel("y [cm]")
-  plt.savefig("traj_xy_" + str(iTrk) + ".pdf")
+  plt.savefig(saveDir + "traj_" + str(iTrk) + "_xy.png")
+  plt.savefig(saveDir + "traj_" + str(iTrk) + "_xy.pdf")
   plt.close()
 
   figXZ = plt.figure()
   axXZ = figXZ.add_subplot()
-  bsXZ = phs.Ellipse((trajBS.refPoint[0], trajBS.refPoint[2]), trajBS.refWidth[0], trajBS.refWidth[2], label="Beam Spot", fill=False, lw=1.5)
+  bsXZ = phs.Ellipse((trajBS.refPoint[0], trajBS.refPoint[2]), trajBS.refWidth[0], trajBS.refWidth[2], label="Beam Spot", fill=False, lw=1.5, color="k")
   axXZ.add_patch(bsXZ)
-  plt.errorbar(trajBS.hitsX, trajBS.hitsZ, trajBS.hitsZerr, trajBS.hitsXerr, fmt=fmtBS, fillstyle=fillBS, label="BS extrapolation, "+timeBS)
-  plt.errorbar(trajPV.refPoint[0], trajPV.refPoint[2], trajPV.refPointErr[2], trajPV.refPointErr[0], ms=5, fmt="o", label="Primary Vertex")
-  plt.errorbar(trajPV.hitsX, trajPV.hitsZ, trajPV.hitsZerr, trajPV.hitsXerr, fmt=fmtPV, fillstyle=fillPV, label="PV extrapolation, "+timePV)
+  # BTL
+  plt.plot([btlRadius, btlRadius], [-otstz, otstz], ls="dashed", lw=1.5, color="k")
+  plt.plot([-btlRadius, -btlRadius], [-otstz, otstz], ls="dashed", lw=1.5, color="k")
+  # ETL
+  plt.plot([btlRadius, -btlRadius], [etl2, etl2], ls="dotted", lw=1.5, color="k")
+  plt.plot([btlRadius, -btlRadius], [etl1, etl1], ls="dotted", lw=1.5, color="k")
+  plt.plot([btlRadius, -btlRadius], [-etl2, -etl2], ls="dotted", lw=1.5, color="k")
+  plt.plot([btlRadius, -btlRadius], [-etl1, -etl1], ls="dotted", lw=1.5, color="k")
+  # OT
+  plt.plot([otRadius, otRadius], [-otz, otz], ls="solid", lw=1.5, color="k")
+  plt.plot([-otRadius, -otRadius], [-otz, otz], ls="solid", lw=1.5, color="k")
+  plt.plot([otRadius, -otRadius], [otz, otz], ls="solid", lw=1.5, color="k")
+  plt.plot([otRadius, -otRadius], [-otz, -otz], ls="solid", lw=1.5, color="k")
+  # TRAJ
+  plt.errorbar(trajBS.hitsX, trajBS.hitsZ, trajBS.hitsZerr, trajBS.hitsXerr, fmt=fmtBS, fillstyle=fillBS, label="BS extrapolation, "+timeBS, color=CMS.petroff_8[1])
+  plt.errorbar(trajPV.refPoint[0], trajPV.refPoint[2], trajPV.refPointErr[2], trajPV.refPointErr[0], ms=5, fmt="o", label="Primary Vertex", color=CMS.petroff_8[2])
+  plt.errorbar(trajPV.hitsX, trajPV.hitsZ, trajPV.hitsZerr, trajPV.hitsXerr, fmt=fmtPV, fillstyle=fillPV, label="PV extrapolation, "+timePV, color=CMS.petroff_8[0])
+  plt.arrow(-102, 107, -btlRadius+110, 0, width=1.5)
+  plt.text(-100, 100, "outer edge of MTD barrel")
+  plt.text(-10, 280, "MTD endcap disks")
+  plt.text(-10, -295, "MTD endcap disks")
+  plt.text(-10, 243, "outer edge of Outer Tracker")
   plt.legend()
   plt.xlabel("x [cm]")
   plt.ylabel("z [cm]")
-  plt.savefig("traj_xz_" + str(iTrk) + ".pdf")
+  plt.savefig(saveDir + "traj_" + str(iTrk) + "_xz.png")
+  plt.savefig(saveDir + "traj_" + str(iTrk) + "_xz.pdf")
   plt.close()
 
   figYZ = plt.figure()
   axYZ = figYZ.add_subplot()
-  bsYZ = phs.Ellipse((trajBS.refPoint[1], trajBS.refPoint[2]), trajBS.refWidth[1], trajBS.refWidth[2], label="Beam Spot", fill=False, lw=1.5)
+  bsYZ = phs.Ellipse((trajBS.refPoint[1], trajBS.refPoint[2]), trajBS.refWidth[1], trajBS.refWidth[2], label="Beam Spot", fill=False, lw=1.5, color="k")
   axYZ.add_patch(bsYZ)
-  plt.errorbar(trajBS.hitsY, trajBS.hitsZ, trajBS.hitsZerr, trajBS.hitsYerr, fmt=fmtBS, fillstyle=fillBS, label="BS extrapolation, "+timeBS)
-  plt.errorbar(trajPV.refPoint[1], trajPV.refPoint[2], trajPV.refPointErr[2], trajPV.refPointErr[1], ms=5, fmt="o", label="Primary Vertex")
-  plt.errorbar(trajPV.hitsY, trajPV.hitsZ, trajPV.hitsZerr, trajPV.hitsYerr, fmt=fmtPV, fillstyle=fillPV, label="PV extrapolation, "+timePV)
+  # BTL
+  plt.plot([btlRadius, btlRadius], [-otstz, otstz], ls="dashed", lw=1.5, color="k")
+  plt.plot([-btlRadius, -btlRadius], [-otstz, otstz], ls="dashed", lw=1.5, color="k")
+  # ETL
+  plt.plot([btlRadius, -btlRadius], [etl2, etl2], ls="dotted", lw=1.5, color="k")
+  plt.plot([btlRadius, -btlRadius], [etl1, etl1], ls="dotted", lw=1.5, color="k")
+  plt.plot([btlRadius, -btlRadius], [-etl2, -etl2], ls="dotted", lw=1.5, color="k")
+  plt.plot([btlRadius, -btlRadius], [-etl1, -etl1], ls="dotted", lw=1.5, color="k")
+  # OT
+  plt.plot([otRadius, otRadius], [-otz, otz], ls="solid", lw=1.5, color="k")
+  plt.plot([-otRadius, -otRadius], [-otz, otz], ls="solid", lw=1.5, color="k")
+  plt.plot([otRadius, -otRadius], [otz, otz], ls="solid", lw=1.5, color="k")
+  plt.plot([otRadius, -otRadius], [-otz, -otz], ls="solid", lw=1.5, color="k")
+  # TRAJ
+  plt.errorbar(trajBS.hitsY, trajBS.hitsZ, trajBS.hitsZerr, trajBS.hitsYerr, fmt=fmtBS, fillstyle=fillBS, label="BS extrapolation, "+timeBS, color=CMS.petroff_8[1])
+  plt.errorbar(trajPV.refPoint[1], trajPV.refPoint[2], trajPV.refPointErr[2], trajPV.refPointErr[1], ms=5, fmt="o", label="Primary Vertex", color=CMS.petroff_8[2])
+  plt.errorbar(trajPV.hitsY, trajPV.hitsZ, trajPV.hitsZerr, trajPV.hitsYerr, fmt=fmtPV, fillstyle=fillPV, label="PV extrapolation, "+timePV, color=CMS.petroff_8[0])
+  plt.arrow(-102, 107, -btlRadius+110, 0, width=1.5)
+  plt.text(-100, 100, "outer edge of MTD barrel")
+  plt.text(-10, 280, "MTD endcap disks")
+  plt.text(-10, -295, "MTD endcap disks")
+  plt.text(-10, 243, "outer edge of Outer Tracker")
   plt.legend()
   plt.xlabel("y [cm]")
   plt.ylabel("z [cm]")
-  plt.savefig("traj_yz_" + str(iTrk) + ".pdf")
+  plt.savefig(saveDir + "traj_" + str(iTrk) + "_yz.png")
+  plt.savefig(saveDir + "traj_" + str(iTrk) + "_yz.pdf")
   plt.close()
 
 
@@ -140,20 +202,27 @@ for line in fTraj:
 
 numTrks = 25
 iTrk = 1
+nBadTracks = 0
+maxNBadTracks = 10
 for bskey in bsTrajs.keys():
   if iTrk > numTrks: break
   if bskey not in pvTrajs.keys():
     # print("No matching track extrapolated to PV!")
     continue
-  if bsTrajs[bskey].trkTime == 0.0:
+  if bsTrajs[bskey].trkTime == 0.0 and bsTrajs[bskey].trkTimeErr == -1.0:
     # print("No BS extrapolated track time!")
     continue
-  if pvTrajs[bskey].trkTime == 0.0:
+  if pvTrajs[bskey].trkTime == 0.0 and pvTrajs[bskey].trkTimeErr == -1.0:
     # print("No PV extrapolated track time!")
     continue
   if bsTrajs[bskey].trkTime == pvTrajs[bskey].trkTime:
     print("Times are too similar!")
     continue
+  if bsTrajs[bskey].trkTimeErr*1000 > 60.0 or pvTrajs[bskey].trkTimeErr*1000 > 60.0:
+    if nBadTracks >= maxNBadTracks:
+      # print("Errors are too large!")
+      continue
+    nBadTracks += 1
 
   print("Plotting track %d: %s" % (iTrk, bsTrajs[bskey].trkRef))
   plotTrajectories(bsTrajs[bskey], pvTrajs[bskey], iTrk)
