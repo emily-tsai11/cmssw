@@ -15,6 +15,21 @@ def addMergedGenParticles(process):
     return process
 
 
+def addTOFPIDFromPV(process):
+    process.tofPIDFromPV = process.tofPID.clone(
+        sigmat0Src = cms.InputTag("trackExtenderFromPointWithMTD","generalTracksigmat0"),
+        sigmatmtdSrc = cms.InputTag("trackExtenderFromPointWithMTD","generalTracksigmatmtd"),
+        t0Src = cms.InputTag("trackExtenderFromPointWithMTD","generalTrackt0"),
+        tmtdSrc = cms.InputTag("trackExtenderFromPointWithMTD","generalTracktmtd"),
+        tofkSrc = cms.InputTag("trackExtenderFromPointWithMTD","generalTrackTofK"),
+        tofpSrc = cms.InputTag("trackExtenderFromPointWithMTD","generalTrackTofP"),
+    )
+    process.vertexrecoTask.add(
+        process.tofPIDFromPV
+    )
+    return process
+
+
 def addMTDTrackTimingToSVReco(process):
     # Add timing to clustering
     process.inclusiveCandidateVertexFinderMTDPV = process.inclusiveCandidateVertexFinder.clone(
@@ -62,10 +77,14 @@ def dropKeepBranches(process):
         "keep recoJetFlavourInfoMatchingCollection_slimmedGenJetsFlavourInfos__BTV",
         # For track time validation
         "keep recoTracks_generalTracks__BTV",
-        "keep *_trackExtenderWithMTD_generalTrackt0_BTV",
-        "keep *_trackExtenderWithMTD_generalTracksigmat0_BTV",
-        "keep *_trackExtenderFromPointWithMTD_generalTrackt0_BTV",
-        "keep *_trackExtenderFromPointWithMTD_generalTracksigmat0_BTV",
+        # "keep *_trackExtenderWithMTD_generalTrackt0_BTV",
+        # "keep *_trackExtenderWithMTD_generalTracksigmat0_BTV",
+        # "keep *_trackExtenderFromPointWithMTD_generalTrackt0_BTV",
+        # "keep *_trackExtenderFromPointWithMTD_generalTracksigmat0_BTV",
+        "keep *_tofPID_t0_BTV",
+        "keep *_tofPID_sigmat0_BTV",
+        "keep *_tofPIDFromPV_t0_BTV",
+        "keep *_tofPIDFromPV_sigmat0_BTV",
         # "keep *_mtdTrackQualityMVA_mtdQualMVA_BTV", # Not well-defined
     ))
     return process
@@ -95,6 +114,7 @@ setMaxEvents(process, -1)
 # setInputFileName(process, "file:/eos/user/e/etsai/workspace/TTToHadronicPU200_ReReco_CMSSW_13_1_3/src/RecoVertex/AdaptiveVertexFinder/test/TTToHadronic_PU200_originalDAS.root")
 setOutputFileName(process, "TTToHadronic_PU200_slimmed.root")
 addMergedGenParticles(process)
+addTOFPIDFromPV(process)
 addMTDTrackTimingToSVReco(process)
 dropKeepBranches(process)
 dumpDebug(process, False)
