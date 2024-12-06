@@ -1,6 +1,6 @@
 # For generating Run 3 TTtoSemiLeptonic V_cb gridpacks
 
-CMSSW is so far only needed for the environment, according to the [CMS generator Wiki](https://cms-gen.gitbook.io/cms-generator-central-place/how-to-produce-gridpacks/powheg-box). The packages are structured in such a way to comply with CMSSW requirements.
+CMSSW is so far only needed for the environment, according to the [CMS generator Wiki](https://cms-gen.gitbook.io/cms-generator-central-place/how-to-produce-gridpacks/powheg-box). The folders are structured in such a way to comply with CMSSW package requirements.
 
 ### Setup
 
