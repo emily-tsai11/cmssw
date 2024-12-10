@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: Configuration/GenProduction/python/GEN-Run3Summer23wmLHEGS-00009-fragment_original.py --python_filename GEN-Run3Summer23MiniAODv4-00015_1_cfg_original.py --eventcontent NANOAODGEN --customise Configuration/DataProcessing/Utils.addMonitoring --datatier NANOAOD --fileout file:GEN-Run3Summer23MiniAODv4-00015.root --conditions 130X_mcRun3_2023_realistic_v14 --step LHE,GEN,NANOGEN --geometry DB:Extended --era Run3_2023 --no_exec --mc -n 100
+# with command line options: Configuration/GenProduction/python/GEN-Run3Summer23wmLHEGS-00009-fragment_original.py --python_filename GEN-Run3Summer23MiniAODv4-00015_1_cfg_original.py --eventcontent NANOAODGEN --customise Configuration/DataProcessing/Utils.addMonitoring --datatier NANOAOD --fileout file:GEN-Run3Summer23MiniAODv4-00015_original.root --conditions 130X_mcRun3_2023_realistic_v14 --step LHE,GEN,NANOGEN --geometry DB:Extended --era Run3_2023 --no_exec --mc -n 1000
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.Eras.Era_Run3_2023_cff import Run3_2023
@@ -25,7 +25,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100),
+    input = cms.untracked.int32(1000),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -66,7 +66,7 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('Configuration/GenProduction/python/GEN-Run3Summer23wmLHEGS-00009-fragment_original.py nevts:100'),
+    annotation = cms.untracked.string('Configuration/GenProduction/python/GEN-Run3Summer23wmLHEGS-00009-fragment_original.py nevts:1000'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
@@ -83,7 +83,7 @@ process.NANOAODGENoutput = cms.OutputModule("NanoAODOutputModule",
         dataTier = cms.untracked.string('NANOAOD'),
         filterName = cms.untracked.string('')
     ),
-    fileName = cms.untracked.string('file:GEN-Run3Summer23MiniAODv4-00015.root'),
+    fileName = cms.untracked.string('file:GEN-Run3Summer23MiniAODv4-00015_original.root'),
     outputCommands = process.NANOAODGENEventContent.outputCommands
 )
 
@@ -171,7 +171,7 @@ process.generator = cms.EDFilter("Pythia8ConcurrentHadronizerFilter",
 process.externalLHEProducer = cms.EDProducer("ExternalLHEProducer",
     args = cms.vstring('/cvmfs/cms.cern.ch/phys_generator/gridpacks/PdmV/Run3Summer22/Powheg/TT/hvq_slc7_amd64_gcc10_CMSSW_12_4_8_TTtoLNu2Q_powheg-pythia8.tgz'),
     generateConcurrently = cms.untracked.bool(True),
-    nEvents = cms.untracked.uint32(100),
+    nEvents = cms.untracked.uint32(1000),
     numberOfParameters = cms.uint32(1),
     outputFile = cms.string('cmsgrid_final.lhe'),
     scriptName = cms.FileInPath('GeneratorInterface/LHEInterface/data/run_generic_tarball_cvmfs.sh')
